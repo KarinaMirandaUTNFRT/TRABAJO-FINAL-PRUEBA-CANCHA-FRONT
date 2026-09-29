@@ -16,7 +16,7 @@ const Menu = () => {
     `block py-2 px-3 transition-colors duration-200 md:p-0 ${
       isActive
         ? "text-green-500 font-semibold"
-        : "text-zinc-300 hover:text-gren-600"
+        : "text-zinc-300 hover:text-green-600"
     }`;
   const logout = () => {
     sessionStorage.removeItem("usuarioLogueado");
