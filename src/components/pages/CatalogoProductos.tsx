@@ -1,15 +1,15 @@
 import CardProducto from "../services/CardProducto";
 import { NavLink } from "react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent} from "react";
 import { listarProductosApi } from "../../helpers/queries";
 import type { Producto } from "../../interfaces/productos";
 
-// 1. Creamos el Skeleton basado en el diseño de tus tarjetas blancas
+
 const SkeletonCardProducto = () => (
   <div className="bg-white rounded-xl shadow-md overflow-hidden animate-pulse flex flex-col w-full border border-zinc-200">
     {/* Imagen */}
     <div className="h-48 bg-zinc-200 w-full"></div>
-    <div className="p-5 flex flex-col flex-grow">
+    <div className="p-5 flex flex-col grow">
       {/* Título y categoría */}
       <div className="h-6 bg-zinc-200 rounded-md w-3/4 mb-2"></div>
       <div className="h-4 bg-zinc-200 rounded-md w-1/2 mb-4"></div>
@@ -24,7 +24,7 @@ const SkeletonCardProducto = () => (
       {/* Input de cantidad y botón Agregar */}
       <div className="flex gap-2 mb-3">
         <div className="h-10 w-16 bg-zinc-200 rounded-lg"></div>
-        <div className="h-10 flex-grow bg-emerald-200 rounded-lg"></div>
+        <div className="h-10 grow bg-emerald-200 rounded-lg"></div>
       </div>
       
       {/* Botón Ver Detalle */}
@@ -53,7 +53,7 @@ const Inicio = () => {
     terminoFiltro: string,
   ) => {
     try {
-      setIsLoading(true); // Iniciamos la carga
+      setIsLoading(true); 
       const respuestaProductos = await listarProductosApi({
         pagina: paginaNumero,
         limite: cantProductos,
@@ -83,11 +83,11 @@ const Inicio = () => {
       setCantidadProductos(0);
       setTotalPaginas(1);
     } finally {
-      setIsLoading(false); // 3. Descomentado y activado al finalizar
+      setIsLoading(false); 
     }
   };
 
-  const handleBuscar = (event: FormEvent<HTMLFormElement>) => {
+  const handleBuscar = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPaginaActual(1);
     setFiltro(termino.trim());
@@ -162,21 +162,20 @@ const Inicio = () => {
         </form>
       </div>
 
-      {/* 4. Lógica de renderizado condicional para el Skeleton */}
+     
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading ? (
-          // Renderiza 8 Skeletons mientras está cargando
+          
           Array.from({ length: cantProductos }).map((_, index) => (
             <SkeletonCardProducto key={`skeleton-${index}`} />
           ))
         ) : productos.length === 0 ? (
-          // Mensaje si no hay resultados
+          
           <div className="col-span-full text-center py-12 text-zinc-400 bg-zinc-900 rounded-xl border border-zinc-800">
             No se encontraron productos que coincidan con tu búsqueda.
           </div>
         ) : (
-          // Renderiza las tarjetas reales
-          productos.map((producto) => (
+                   productos.map((producto) => (
             <CardProducto key={producto._id} producto={producto} />
           ))
         )}
