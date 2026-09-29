@@ -12,7 +12,7 @@ interface CarouselProps {
 
 const defaultSlides: Slide[] = [
   {
-    url: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
+    url: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=80",
     title: "Viví la Pasión Nocturna",
     description:
       "Sistema de iluminación LED profesional para que juegues tus partidos a toda hora sin perderte un detalle del juego.",

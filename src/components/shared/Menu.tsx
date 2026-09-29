@@ -20,7 +20,7 @@ const Menu = () => {
     }`;
   const logout = () => {
     sessionStorage.removeItem("usuarioLogueado");
-    sessionStorage.removeItem("usuarioKey");
+    sessionStorage.removeItem("usuarioLogueado");
     setUsuarioLogueado(null);
     setIsMenuOpen(false);
     navegacion("/");

@@ -25,7 +25,7 @@ import { loginBackendApi } from "./helpers/queries";
 
 function App() {
   const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(() => {
-    const sesion = sessionStorage.getItem("usuarioKey");
+    const sesion = sessionStorage.getItem("usuarioLogueado");
     return sesion ? JSON.parse(sesion) : null;
   });
 
@@ -67,7 +67,7 @@ function App() {
   const refreshCarritoCount = async (): Promise<void> => {};
 
   useEffect(() => {
-    sessionStorage.setItem("usuarioKey", JSON.stringify(usuarioLogueado));
+    sessionStorage.setItem("usuarioLogueado", JSON.stringify(usuarioLogueado));
   }, [usuarioLogueado]);
 
   return (
