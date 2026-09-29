@@ -1,5 +1,7 @@
 import type { CanchaFormData } from "../interfaces/canchas";
 import type { Producto, ProductoFormData } from "../interfaces/productos";
+import { httpClient } from "./httpClient";
+import type { ICarrito } from "../interfaces/carrito";
 
 const urlCanchas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/canchas`;
 const urlReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/disponibles`;
@@ -313,34 +315,15 @@ export const logoutBackendApi = async (): Promise<Response> => {
     credentials: "include",
   });
 };
-export const agregarAlCarritoApi = async (
-  productoId: string,
-  cantidad = 1,
-): Promise<Response> => {
-  try {
-    const respuesta = await fetch(urlCarrito, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ producto: productoId, cantidad }),
-    });
-    return respuesta;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+
+export const agregarAlCarritoApi = async (productoId: string, cantidad: number) => {
+ 
+  return await httpClient.post("/carrito/agregar", { productoId, cantidad });
 };
 
-export const restarDelCarritoApi = async (
-  productoId: string,
-): Promise<Response> => {
-  const respuesta = await fetch(`${urlCarrito}/restar/${productoId}`, {
-    method: "PATCH",
-    credentials: "include",
-  });
-  return respuesta;
+export const restarDelCarritoApi = async (productoId: string) => {
+  return await httpClient.delete(`/carrito/restar/${productoId}`);
 };
-
 export const eliminarProductoDelCarritoApi = async (
   productoId: string,
 ): Promise<Response> => {
@@ -374,38 +357,15 @@ export const obtenerCantidadCarritoApi = async (): Promise<number> => {
     throw error;
   }
 };
-export const obtenerCarritoApi = async (): Promise<any> => {
-  try {
-    const respuesta = await fetch(urlCarrito, {
-      method: "GET",
-      credentials: "include",
-    });
-    if (respuesta.status === 401 || respuesta.status === 403) {
-      return null;
-    }
-    if (!respuesta.ok) {
-      throw new Error("No se pudo obtener el carrito");
-    }
-    return respuesta.json();
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+
+export const obtenerCarritoApi = async () => {
+  return await httpClient.get<ICarrito>("/carrito");
 };
 
-export const crearPreferenciaPagoApi = async (): Promise<Response> => {
-  try {
-    const respuesta = await fetch(`${urlPagoProducto}/crear-preferencia`, {
-      method: "POST",
-      credentials: "include",
-    });
-    return respuesta;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+export const crearPreferenciaPagoApi = async () => {
+  
+  return await httpClient.post<any>(`${urlPagoProducto}/crear-preferencia`);
 };
-
 export const crearPreferenciaReservaApi = async (reservaId: any) => {
   const usuario = JSON.parse(sessionStorage.getItem("usuarioLogueado") || "{}");
   const token = usuario?.token;

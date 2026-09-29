@@ -54,13 +54,12 @@ const Carrito = () => {
     setUpdatingItem(String(item._id));
     try {
       if (diferencia > 0) {
-        const respuesta = await agregarAlCarritoApi(productoId, diferencia);
-        if (!respuesta.ok) throw new Error("No se pudo aumentar la cantidad");
+        await agregarAlCarritoApi(productoId, diferencia);
+       
       } else {
         for (let index = 0; index < Math.abs(diferencia); index += 1) {
-          const respuesta = await restarDelCarritoApi(productoId);
-          if (!respuesta.ok)
-            throw new Error("No se pudo disminuir la cantidad");
+          await restarDelCarritoApi(productoId);
+          
         }
       }
       await fetchCarrito();
