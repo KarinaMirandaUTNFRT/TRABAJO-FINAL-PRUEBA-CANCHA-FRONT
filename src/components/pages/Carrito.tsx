@@ -8,10 +8,11 @@ import {
 } from "../../helpers/queries";
 import { Link, useNavigate } from "react-router";
 import swal from "sweetalert2";
+import type { CarritoItem, ICarrito } from "../../interfaces/carrito";
 
 const Carrito = () => {
   const { usuarioLogueado, refreshCarritoCount } = useAppContext();
-  const [carrito, setCarrito] = useState<any | null>(null);
+  const [carrito, setCarrito] = useState<ICarrito | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [updatingItem, setUpdatingItem] = useState<string | null>(null);
   const navegacion = useNavigate();
@@ -36,17 +37,17 @@ const Carrito = () => {
   const calcularTotal = () => {
     if (!carrito || !Array.isArray(carrito.items)) return 0;
     return carrito.items.reduce(
-      (acc: number, it: any) =>
+      (acc: number, it: CarritoItem) =>
         acc + Number(it.producto?.precio || 0) * Number(it.cantidad || 0),
       0,
     );
   };
 
-  const actualizarCantidad = async (item: any, nuevaCantidad: number) => {
+  const actualizarCantidad = async (item: CarritoItem, nuevaCantidad: number) => {
     const cantidadActual = Number(item.cantidad) || 0;
     const cantidadSolicitada = Math.max(1, Math.floor(nuevaCantidad));
     const diferencia = cantidadSolicitada - cantidadActual;
-    const productoId = String(item.producto?._id || item.productoId);
+    const productoId = String(item.producto?._id || item.producto._id);
 
     if (!productoId || diferencia === 0) return;
 
@@ -71,8 +72,8 @@ const Carrito = () => {
     }
   };
 
-  const eliminarItem = async (item: any) => {
-    const productoId = String(item.producto?._id || item.productoId);
+  const eliminarItem = async (item: CarritoItem) => {
+    const productoId = String(item.producto?._id || item.producto._id);
     if (!productoId) return;
 
     const confirmacion = await swal.fire({
@@ -170,7 +171,7 @@ const Carrito = () => {
       ) : (
         <div className="bg-zinc-900 p-4 rounded-lg">
           <ul className="space-y-4">
-            {carrito.items.map((it: any) => (
+            {carrito.items.map((it: CarritoItem) => (
               <li key={it._id} className="flex items-center gap-4">
                 <img
                   src={it.producto?.imagen}
