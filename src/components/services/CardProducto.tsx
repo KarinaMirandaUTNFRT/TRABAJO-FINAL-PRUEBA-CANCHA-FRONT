@@ -1,6 +1,6 @@
 import { GiShoppingCart } from "react-icons/gi";
 import type { Producto } from "../../interfaces/productos";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { useAppContext } from "../../context/AppContext";
@@ -131,4 +131,4 @@ const CardProducto = ({ producto }: CardProductoProps) => {
   );
 };
 
-export default CardProducto;
+export default memo(CardProducto);
