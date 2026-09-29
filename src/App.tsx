@@ -1,27 +1,41 @@
-import Administrador from "./components/pages/Administrador";
-import Formulario from "./components/pages/Formulario";
-import FormCancha from "./components/pages/FormCancha";
-import Inicio from "./components/pages/Inicio";
-import Login from "./components/pages/Login";
+import { useEffect, useState, Suspense, lazy } from "react";
+import { BrowserRouter, Routes, Route } from "react-router";
+import { AppContext } from "./context/AppContext";
+import type { Usuario } from "./interfaces/usuarios";
+import { loginBackendApi } from "./helpers/queries";
+
+// --- Importaciones Estáticas ---
+
 import Footer from "./components/shared/Footer";
 import Menu from "./components/shared/Menu";
-import Error404 from "./components/pages/Error404";
-import QuienesSomos from "./components/pages/QuienesSomos";
-import Contacto from "./components/pages/Contacto";
-import { BrowserRouter, Routes, Route } from "react-router";
 import ProtectorRutas from "./components/routes/ProtectorRutas";
-import RegistroUsuario from "./components/pages/RegistroUsuario";
-import AdmReservas from "./components/pages/AdmReservas";
-import AdmCanchas from "./components/pages/AdmCanchas";
-import { useEffect, useState } from "react";
-import { AppContext } from "./context/AppContext";
-import CatalogoProductos from "./components/pages/CatalogoProductos";
-import AdmProductos from "./components/pages/AdmProductos";
-import DetalleProducto from "./components/pages/DetalleProducto";
-import Carrito from "./components/pages/Carrito";
-import type { Usuario } from "./interfaces/usuarios";
-import AdmReservasClientes from "./components/pages/AdmReservascliente";
-import { loginBackendApi } from "./helpers/queries";
+
+// --- Importaciones Dinámicas (Lazy Loading) ---
+
+const Inicio = lazy(() => import("./components/pages/Inicio"));
+const Login = lazy(() => import("./components/pages/Login"));
+const RegistroUsuario = lazy(() => import("./components/pages/RegistroUsuario"));
+const Administrador = lazy(() => import("./components/pages/Administrador"));
+const Formulario = lazy(() => import("./components/pages/Formulario"));
+const FormCancha = lazy(() => import("./components/pages/FormCancha"));
+const Error404 = lazy(() => import("./components/pages/Error404"));
+const QuienesSomos = lazy(() => import("./components/pages/QuienesSomos"));
+const Contacto = lazy(() => import("./components/pages/Contacto"));
+const AdmReservas = lazy(() => import("./components/pages/AdmReservas"));
+const AdmCanchas = lazy(() => import("./components/pages/AdmCanchas"));
+const CatalogoProductos = lazy(() => import("./components/pages/CatalogoProductos"));
+const AdmProductos = lazy(() => import("./components/pages/AdmProductos"));
+const DetalleProducto = lazy(() => import("./components/pages/DetalleProducto"));
+const Carrito = lazy(() => import("./components/pages/Carrito"));
+const AdmReservasClientes = lazy(() => import("./components/pages/AdmReservascliente"));
+
+// Componente visual de carga para mostrar mientras se descarga la página
+const FallbackCarga = () => (
+  <div className="flex flex-col items-center justify-center min-h-[60vh]">
+    <div className="w-12 h-12 border-4 border-zinc-700 border-t-emerald-500 rounded-full animate-spin"></div>
+    <p className="mt-4 text-zinc-400 font-medium">Cargando...</p>
+  </div>
+);
 
 function App() {
   const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(() => {
@@ -30,15 +44,8 @@ function App() {
   });
 
   const [loadingSession, setLoadingSession] = useState(false);
-
-  //const [loadingSession ] = useState<boolean>(true);
-
   const [carritoCount, setCarritoCount] = useState<number>(0);
-  // Funciones requeridas por la interfaz
-  // const loginBackend = async (email: string, pass: string): Promise<Usuario | null> => {
-  //   // Lógica de login o llamada a tu helper
-  //   return null;
-  // };
+
   const loginBackend = async (
     email: string,
     pass: string,
@@ -85,65 +92,43 @@ function App() {
     >
       <BrowserRouter>
         <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-          <Menu />
-          <main className="w-full grow">
-            <Routes>
-              <Route path="/" element={<Inicio></Inicio>} />
-              <Route path="/login" element={<Login></Login>} />
-              <Route path="/reservas" element={<AdmReservasClientes />} />
-              <Route path="/registrate" element={<RegistroUsuario />} />
-              <Route path="/administrador" element={<ProtectorRutas />}>
-                <Route index element={<Administrador />} />
-                <Route
-                  path="/administrador/productos"
-                  element={<AdmProductos></AdmProductos>}
-                />
-                <Route
-                  path="/administrador/productos/crear"
-                  element={<Formulario titulo={"Crear Producto"}></Formulario>}
-                />
-                <Route
-                  path="/administrador/productos/editar/:id"
-                  element={<Formulario titulo={"Editar Producto"}></Formulario>}
-                />
-                <Route
-                  path="/administrador/reservas"
-                  element={<AdmReservas></AdmReservas>}
-                />
-                <Route
-                  path="/administrador/canchas"
-                  element={<AdmCanchas></AdmCanchas>}
-                />
-                <Route
-                  path="/administrador/canchas/crear"
-                  element={<FormCancha titulo={"Crear cancha"}></FormCancha>}
-                />
-                <Route
-                  path="/administrador/canchas/editar/:id"
-                  element={<FormCancha titulo={"Editar cancha"}></FormCancha>}
-                />
-              </Route>
-              <Route
-                path="/productos"
-                element={<CatalogoProductos></CatalogoProductos>}
-              />
-              <Route
-                path="/productos/detalle/:id"
-                element={<DetalleProducto />}
-              />
-              <Route path="*" element={<Error404></Error404>} />
-              <Route
-                path="/quienessomos"
-                element={<QuienesSomos></QuienesSomos>}
-              />
-              <Route path="/contacto" element={<Contacto></Contacto>} />
-              <Route path="/carrito" element={<Carrito />} />
-            </Routes>
+                   <Menu />
+                    <main className="w-full grow">
+                       <Suspense fallback={<FallbackCarga />}>
+              <Routes>
+                <Route path="/" element={<Inicio />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/reservas" element={<AdmReservasClientes />} />
+                <Route path="/registrate" element={<RegistroUsuario />} />
+                
+                <Route path="/administrador" element={<ProtectorRutas />}>
+                  <Route index element={<Administrador />} />
+                  <Route path="/administrador/productos" element={<AdmProductos />} />
+                  <Route path="/administrador/productos/crear" element={<Formulario titulo={"Crear Producto"} />} />
+                  <Route path="/administrador/productos/editar/:id" element={<Formulario titulo={"Editar Producto"} />} />
+                  <Route path="/administrador/reservas" element={<AdmReservas />} />
+                  <Route path="/administrador/canchas" element={<AdmCanchas />} />
+                  <Route path="/administrador/canchas/crear" element={<FormCancha titulo={"Crear cancha"} />} />
+                  <Route path="/administrador/canchas/editar/:id" element={<FormCancha titulo={"Editar cancha"} />} />
+                </Route>
+                
+                <Route path="/productos" element={<CatalogoProductos />} />
+                <Route path="/productos/detalle/:id" element={<DetalleProducto />} />
+                <Route path="/quienessomos" element={<QuienesSomos />} />
+                <Route path="/contacto" element={<Contacto />} />
+                <Route path="/carrito" element={<Carrito />} />
+                
+                <Route path="*" element={<Error404 />} />
+              </Routes>
+            </Suspense>
           </main>
+          
+          
           <Footer />
         </div>
       </BrowserRouter>
     </AppContext.Provider>
   );
 }
+
 export default App;
