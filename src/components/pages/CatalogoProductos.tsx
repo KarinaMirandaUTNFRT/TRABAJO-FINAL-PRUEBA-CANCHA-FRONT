@@ -1,37 +1,30 @@
 import CardProducto from "../services/CardProducto";
 import { NavLink } from "react-router";
-import { useEffect, useState, type SubmitEvent} from "react";
+import { useEffect, useState, useCallback, memo, type SubmitEvent, type ChangeEvent } from "react";
 import { listarProductosApi } from "../../helpers/queries";
 import type { Producto } from "../../interfaces/productos";
 
 
-const SkeletonCardProducto = () => (
+const SkeletonCardProducto = memo(() => (
   <div className="bg-white rounded-xl shadow-md overflow-hidden animate-pulse flex flex-col w-full border border-zinc-200">
-    {/* Imagen */}
     <div className="h-48 bg-zinc-200 w-full"></div>
     <div className="p-5 flex flex-col grow">
-      {/* Título y categoría */}
       <div className="h-6 bg-zinc-200 rounded-md w-3/4 mb-2"></div>
       <div className="h-4 bg-zinc-200 rounded-md w-1/2 mb-4"></div>
-      
-      {/* Línea divisoria */}
       <div className="border-t border-dashed border-zinc-300 my-4"></div>
-      
-      {/* Precio */}
       <div className="h-3 bg-zinc-200 rounded w-1/4 mb-2"></div>
       <div className="h-6 bg-zinc-200 rounded-md w-1/3 mb-4"></div>
-      
-      {/* Input de cantidad y botón Agregar */}
       <div className="flex gap-2 mb-3">
         <div className="h-10 w-16 bg-zinc-200 rounded-lg"></div>
         <div className="h-10 grow bg-emerald-200 rounded-lg"></div>
       </div>
-      
-      {/* Botón Ver Detalle */}
       <div className="h-10 w-full bg-blue-200 rounded-lg"></div>
     </div>
   </div>
-);
+));
+
+
+const MemoizedCardProducto = memo(CardProducto);
 
 const Inicio = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -40,7 +33,6 @@ const Inicio = () => {
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [termino, setTermino] = useState("");
   const [filtro, setFiltro] = useState("");
-  // 2. Agregamos el estado de carga
   const [isLoading, setIsLoading] = useState<boolean>(true); 
   const cantProductos = 8;
 
@@ -48,6 +40,7 @@ const Inicio = () => {
     cargarProductos(paginaActual, filtro);
   }, [paginaActual, filtro]);
 
+  
   const cargarProductos = async (
     paginaNumero: number,
     terminoFiltro: string,
@@ -87,22 +80,27 @@ const Inicio = () => {
     }
   };
 
-  const handleBuscar = (event: SubmitEvent<HTMLFormElement>) => {
+  
+  const handleBuscar = useCallback((event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPaginaActual(1);
     setFiltro(termino.trim());
-  };
+  }, [termino]);
 
-  const handleLimpiarFiltro = () => {
+  const handleLimpiarFiltro = useCallback(() => {
     setTermino("");
     setFiltro("");
     setPaginaActual(1);
-  };
+  }, []);
 
-  const cambiarPagina = (pagina: number) => {
+  const cambiarPagina = useCallback((pagina: number) => {
     if (pagina < 1 || pagina > totalPaginas || pagina === paginaActual) return;
     setPaginaActual(pagina);
-  };
+  }, [paginaActual, totalPaginas]);
+
+  const handleChangeTermino = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setTermino(event.target.value);
+  }, []);
 
   return (
     <section className="space-y-8 animate-fadeIn px-10 my-5">
@@ -112,8 +110,7 @@ const Inicio = () => {
             Catálogo de <span className="text-green-500">Productos</span>
           </h1>
           <p className="text-zinc-400 mt-1 text-sm text-center md:text-start">
-            Agrega los productos que quieras al carrito y luego termina tu
-            compra
+            Agrega los productos que quieras al carrito y luego termina tu compra
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -123,9 +120,7 @@ const Inicio = () => {
         </div>
         <NavLink
           to="/"
-          className={
-            "bg-green-500 hover:bg-green-600 transition text-l py-2 px-3 rounded-2xl font-bold cursor-pointer text-center md:text-start"
-          }
+          className="bg-green-500 hover:bg-green-600 transition text-l py-2 px-3 rounded-2xl font-bold cursor-pointer text-center md:text-start"
         >
           Volver al juego ⚽
         </NavLink>
@@ -140,7 +135,7 @@ const Inicio = () => {
             id="buscador-productos"
             type="text"
             value={termino}
-            onChange={(event) => setTermino(event.target.value)}
+            onChange={handleChangeTermino}
             placeholder="Buscar por nombre, categoría o descripción"
             className="w-full sm:w-96 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-blue-500"
           />
@@ -162,21 +157,19 @@ const Inicio = () => {
         </form>
       </div>
 
-     
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading ? (
-          
           Array.from({ length: cantProductos }).map((_, index) => (
             <SkeletonCardProducto key={`skeleton-${index}`} />
           ))
         ) : productos.length === 0 ? (
-          
           <div className="col-span-full text-center py-12 text-zinc-400 bg-zinc-900 rounded-xl border border-zinc-800">
             No se encontraron productos que coincidan con tu búsqueda.
           </div>
         ) : (
-                   productos.map((producto) => (
-            <CardProducto key={producto._id} producto={producto} />
+          productos.map((producto) => (
+           
+            <MemoizedCardProducto key={producto._id} producto={producto} />
           ))
         )}
       </div>
