@@ -1,4 +1,4 @@
-// src/components/ErrorBoundary.tsx
+
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
 // 1. Definimos las interfaces para Props y State
@@ -18,20 +18,20 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = { hasError: false };
   }
 
-  // 2. Este método se llama cuando un componente hijo lanza un error.
+  // Este método se llama cuando un componente hijo lanza un error.
   // Permite actualizar el estado para mostrar la UI de repuesto (fallback).
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  // 3. Este método se usa para registrar el error (puedes conectarlo a Sentry, Datadog, etc.)
+  // Este método se usa para registrar el error (puedes conectarlo a Sentry, Datadog, etc.)
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Error capturado por ErrorBoundary:", error, errorInfo);
   }
 
   public render() {
     if (this.state.hasError) {
-      // Puedes renderizar el prop 'fallback' si se proporcionó, 
+      // renderizar el prop 'fallback' si se proporcionó, 
       // o una interfaz de error genérica por defecto.
       if (this.props.fallback) {
         return this.props.fallback;
