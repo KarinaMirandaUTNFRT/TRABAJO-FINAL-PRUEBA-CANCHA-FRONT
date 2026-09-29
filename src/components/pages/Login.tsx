@@ -7,82 +7,76 @@ interface LoginFormInputs {
   email: string;
   password: string;
 }
-
 const Login = () => {
-   const {setUsuarioLogueado} = useAppContext()
+  const { setUsuarioLogueado } = useAppContext();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormInputs>();
-  const navegacion = useNavigate()
+  const navegacion = useNavigate();
 
   const onSubmit = async (data: LoginFormInputs) => {
-    console.log("algun data",data);
     try {
-      // 1. Llamar al backend real en Render
-      const respuesta = await fetch(
-        "https://alquiler-cancha-proyecto-final-backend.onrender.com/api/usuarios/login", // O la variable de entorno que uses para la URL base
+      const URL_API = import.meta.env.VITE_ALQUILER_CANCHAS;
+     const respuesta = await fetch(`${URL_API}/usuarios/login`,
+        
+       
         {
           method: "POST",
-          credentials: "include", // <-- OBLIGATORIO: guarda la cookie enviada por Render
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-        }
+        },
       );
 
       const resultado = await respuesta.json();
-  console.log("set usuario resultado",resultado)
-    if (respuesta.status === 200) {
-    
-// 1. Guardar el objeto con nombre y rol en el context (y en sessionStorage si lo usas)
-  const datosSesion = {
-    _id: resultado.id,
-    email: resultado.email,
-    nombre: resultado.nombre,
-    rol: resultado.rol, // "admin" o "cliente"
-  };
 
-   sessionStorage.setItem("usuarioLogueado", JSON.stringify(datosSesion));
-   setUsuarioLogueado(datosSesion);
-console.log("set usuario",datosSesion)
-// 2. Personalizar mensaje y redirección según el rol
-  if (resultado.rol?.toLowerCase() === "admin") {
-    Swal.fire({
-      title: `Bienvenido Administrador`,
-      text: `Hola ${resultado.nombre}, ingresando al panel de control`,
-      icon: "success",
-      background: "#18181b",
-      color: "#f4f4f5",
-      confirmButtonColor: "#3b82f6",
-    });
-    navegacion("/administrador");
-  } else {
-    Swal.fire({
-      title: `Bienvenido/a`,
-      text: `Hola ${resultado.nombre}, ingresando al sistema`,
-      icon: "success",
-      background: "#18181b",
-      color: "#f4f4f5",
-      confirmButtonColor: "#3b82f6",
-    });
-    navegacion("/"); 
-  }
-    
-    } else {
-      Swal.fire({
-        title: "Ocurrió un error",
-        text: "Credenciales incorrectas",
-        icon: "error",
-        background: "#18181b",
-        color: "#f4f4f5",
-        confirmButtonColor: "#ef4444",
-      });
-    }
-   
-  } catch (error) {
+      if (respuesta.status === 200) {
+        const datosSesion = {
+          _id: resultado.id,
+          email: resultado.email,
+          nombre: resultado.nombre,
+          rol: resultado.rol,
+        };
+
+        sessionStorage.setItem("usuarioLogueado", JSON.stringify(datosSesion));
+        setUsuarioLogueado(datosSesion);
+
+        if (resultado.rol?.toLowerCase() === "admin") {
+          Swal.fire({
+            title: `Bienvenido Administrador`,
+            text: `Hola ${resultado.nombre}, ingresando al panel de control`,
+            icon: "success",
+            background: "#18181b",
+            color: "#f4f4f5",
+            confirmButtonColor: "#3b82f6",
+          });
+          navegacion("/administrador");
+        } else {
+          Swal.fire({
+            title: `Bienvenido/a`,
+            text: `Hola ${resultado.nombre}, ingresando al sistema`,
+            icon: "success",
+            background: "#18181b",
+            color: "#f4f4f5",
+            confirmButtonColor: "#3b82f6",
+          });
+          navegacion("/");
+        }
+      } else {
+        Swal.fire({
+          title: "Ocurrió un error",
+          text: "Credenciales incorrectas",
+          icon: "error",
+          background: "#18181b",
+          color: "#f4f4f5",
+          confirmButtonColor: "#ef4444",
+        });
+      }
+    } catch (error) {
       console.error(error);
       Swal.fire({
         title: "Error de conexión",
