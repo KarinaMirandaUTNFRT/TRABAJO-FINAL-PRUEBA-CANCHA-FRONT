@@ -1,9 +1,6 @@
-
-
 const AdmCanchas = () => {
   return (
     <section className="animate-fadeIn space-y-6">
-      {/* Header de la sección */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-zinc-900/40 p-6 rounded-2xl border border-zinc-800">
         <div>
           <h1 className="text-2xl font-bold text-white">
@@ -15,10 +12,7 @@ const AdmCanchas = () => {
           <i className="bi bi-plus-lg"></i>
           Alta Cancha
         </a>
-        
       </div>
-
-      {/* Contenedor de la Tabla con Scroll Horizontal para móviles */}
       <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-900/20">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -40,9 +34,7 @@ const AdmCanchas = () => {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/50">
-          
-          </tbody>
+          <tbody className="divide-y divide-zinc-800/50"></tbody>
         </table>
       </div>
     </section>

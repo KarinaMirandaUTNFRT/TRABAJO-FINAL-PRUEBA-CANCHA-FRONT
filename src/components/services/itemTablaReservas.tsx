@@ -7,21 +7,19 @@ import { borrarReservaApi } from "../../helpers/queries";
 interface ItemReservaProps {
   reserva: Reserva;
   fila: number;
-  // TIPADO CORRECTO: El despachador de un estado tipo Servicio[]
   setReservas: React.Dispatch<React.SetStateAction<Reserva[]>>;
 }
-const ItemTablaReserva = ({reserva, fila, setReservas }: ItemReservaProps) => {
- 
- const eliminarReserva = () => {
+const ItemTablaReserva = ({ reserva, fila, setReservas }: ItemReservaProps) => {
+  const eliminarReserva = () => {
     Swal.fire({
       title: "¿Estás seguro?",
       text: "No se puede revertir este proceso",
       icon: "warning",
-      background: "#18181b", // zinc-900
-      color: "#f4f4f5", // zinc-100
+      background: "#18181b",
+      color: "#f4f4f5",
       showCancelButton: true,
-      confirmButtonColor: "#3b82f6", // blue-500
-      cancelButtonColor: "#ef4444", // red-500
+      confirmButtonColor: "#3b82f6",
+      cancelButtonColor: "#ef4444",
       confirmButtonText: "Sí, borrar",
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
@@ -36,7 +34,6 @@ const ItemTablaReserva = ({reserva, fila, setReservas }: ItemReservaProps) => {
             color: "#f4f4f5",
             confirmButtonColor: "#3b82f6",
           });
-          // 2. Usamos el callback del SetState para leer el estado previo de forma segura
           setReservas((prevReservas) =>
             prevReservas.filter((item) => item._id !== reserva._id),
           );
@@ -58,20 +55,20 @@ const ItemTablaReserva = ({reserva, fila, setReservas }: ItemReservaProps) => {
       <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400 font-mono">
         $ {reserva.estado}
       </td>
-      
+
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div className="flex gap-3">
           <Link
             to={`/administrador/reservas/editar/${reserva._id}`}
             className="text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1"
           >
-            Editar <LuPencil /> 
+            Editar <LuPencil />
           </Link>
           <button
             className="text-red-500 hover:text-red-400 transition-colors flex items-center gap-1"
-           onClick={eliminarReserva}
+            onClick={eliminarReserva}
           >
-            Borrar <LuTrash2 /> 
+            Borrar <LuTrash2 />
           </button>
         </div>
       </td>

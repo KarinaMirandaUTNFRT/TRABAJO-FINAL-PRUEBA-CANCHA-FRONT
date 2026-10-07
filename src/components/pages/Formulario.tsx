@@ -1,4 +1,4 @@
-import { useForm, type SubmitHandler} from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import type { Producto, ProductoFormData } from "../../interfaces/productos";
 import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router";
@@ -9,14 +9,6 @@ import {
   editarProductoApi,
   listarCategoriasProductosApi,
 } from "../../helpers/queries";
-
-// interface ProductoImputs {
-//   nombreProducto: string;
-//   precio: number;
-//   categoria: string;
-//   imagen: string;
-//   descripcion: string;
-// }
 
 interface FormularioProps {
   titulo: string;
@@ -29,36 +21,36 @@ const Formulario = ({ titulo }: FormularioProps) => {
     setValue,
     formState: { errors },
   } = useForm<ProductoFormData>();
-  
+
   const { id } = useParams<{ id: string }>();
   const navegacion = useNavigate();
   const [categorias, setCategorias] = useState<Producto[]>([]);
 
   useEffect(() => {
     const obtenerCategorias = async () => {
-          try {
-            const respuesta = await listarCategoriasProductosApi();
-            if (Array.isArray(respuesta)) {
-              setCategorias(respuesta);
-            }
-          } catch (error) {
-            console.error("Error al cargar categorías:", error);
-          }
-        };
+      try {
+        const respuesta = await listarCategoriasProductosApi();
+        if (Array.isArray(respuesta)) {
+          setCategorias(respuesta);
+        }
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
     obtenerCategorias();
-      //  cargarCategorias(); 
     cargarDatos();
   }, []);
- 
+
   const cargarDatos = async () => {
     if (titulo.includes("Editar") && id && buscarProductoApi) {
       const respuestaProducto = await buscarProductoApi(id);
       if (respuestaProducto && respuestaProducto.status === 200) {
         const productoBuscado = await respuestaProducto.json();
-         console.log("3. Respuesta completa de la API:",productoBuscado );
+
         setValue("nombreProducto", productoBuscado.nombreProducto);
         setValue("precio", productoBuscado.precio);
-        const categoriaId = productoBuscado.categoria?._id ?? productoBuscado.categoria; 
+        const categoriaId =
+          productoBuscado.categoria?._id ?? productoBuscado.categoria;
         setValue("categoria", categoriaId);
         setValue("descripcion", productoBuscado.descripcion);
         setValue("imagen", productoBuscado.imagen);
@@ -66,11 +58,7 @@ const Formulario = ({ titulo }: FormularioProps) => {
     }
   };
 
-  // ÚNICO onSubmit válido
-  const onSubmit: SubmitHandler<ProductoFormData> = async (data , e) => {
-    // Aquí verás en consola los datos exactos recopilados del formulario
-    console.log("Datos a enviar a la API:", data);
-
+  const onSubmit: SubmitHandler<ProductoFormData> = async (data, e) => {
     if (titulo.includes("Crear") && crearProductoApi) {
       await crearProductoApi(data);
       Swal.fire({
@@ -86,10 +74,6 @@ const Formulario = ({ titulo }: FormularioProps) => {
       }
     } else if (id) {
       const respuesta = await editarProductoApi(id, data);
-      
-      // Forma correcta de leer la respuesta JSON del servidor
-      const dataRespuesta = await respuesta.json();
-      console.log("Respuesta del servidor:", dataRespuesta);
 
       if (respuesta.ok) {
         Swal.fire({
@@ -158,7 +142,7 @@ const Formulario = ({ titulo }: FormularioProps) => {
                 {...register("precio", {
                   required: "El precio es obligatorio",
                   min: { value: 50, message: "Mínimo $50" },
-                  valueAsNumber: true, // Esto convierte automáticamente el input a número
+                  valueAsNumber: true,
                 })}
               />
               <p className="text-red-500 text-xs mt-1 italic">

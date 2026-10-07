@@ -1,7 +1,4 @@
-
-
 const QuienesSomos = () => {
-  // Datos del equipo (puedes ajustar los nombres e imágenes)
   const teamMembers = [
     {
       name: "Gabriel Funes",
@@ -32,17 +29,13 @@ const QuienesSomos = () => {
 
   return (
     <div className="min-h-screen bg-slate-400 border border-slate-400/50 rounded-2xl text-white flex flex-col justify-between font-sans">
-      {/* Main Content */}
       <main className="max-w-5xl mx-auto px-4 py-12 grow flex flex-col items-center justify-center">
-        {/* Título Principal */}
         <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-12 text-green-600 tracking-tight">
           ¿Quiénes somos?
         </h2>
         <h3 className="text-3xl md:text-4xl font-extrabold text-center mb-12 text-green-600 tracking-tight">
-            Equipo de Desarrollo
+          Equipo de Desarrollo
         </h3>
-
-        {/* Sección Tarjetas de Integrantes */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 w-full mb-16">
           {teamMembers.map((member, index) => (
             <div
@@ -65,8 +58,6 @@ const QuienesSomos = () => {
             </div>
           ))}
         </div>
-
-        {/* Sección Información de la Empresa / Proyecto */}
         <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full text-center shadow-xl">
           <h3 className="text-2xl font-bold text-green-400 mb-4">
             Rolling Club

@@ -8,10 +8,11 @@ import {
 } from "../../helpers/queries";
 import { Link, useNavigate } from "react-router";
 import swal from "sweetalert2";
+import type { CarritoItem, ICarrito } from "../../interfaces/carrito";
 
 const Carrito = () => {
   const { usuarioLogueado, refreshCarritoCount } = useAppContext();
-  const [carrito, setCarrito] = useState<any | null>(null);
+  const [carrito, setCarrito] = useState<ICarrito | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [updatingItem, setUpdatingItem] = useState<string | null>(null);
   const navegacion = useNavigate();
@@ -36,29 +37,29 @@ const Carrito = () => {
   const calcularTotal = () => {
     if (!carrito || !Array.isArray(carrito.items)) return 0;
     return carrito.items.reduce(
-      (acc: number, it: any) =>
+      (acc: number, it: CarritoItem) =>
         acc + Number(it.producto?.precio || 0) * Number(it.cantidad || 0),
-      0
+      0,
     );
   };
 
-  const actualizarCantidad = async (item: any, nuevaCantidad: number) => {
+  const actualizarCantidad = async (item: CarritoItem, nuevaCantidad: number) => {
     const cantidadActual = Number(item.cantidad) || 0;
     const cantidadSolicitada = Math.max(1, Math.floor(nuevaCantidad));
     const diferencia = cantidadSolicitada - cantidadActual;
-    const productoId = String(item.producto?._id || item.productoId);
+    const productoId = String(item.producto?._id || item.producto._id);
 
     if (!productoId || diferencia === 0) return;
 
     setUpdatingItem(String(item._id));
     try {
       if (diferencia > 0) {
-        const respuesta = await agregarAlCarritoApi(productoId, diferencia);
-        if (!respuesta.ok) throw new Error("No se pudo aumentar la cantidad");
+        await agregarAlCarritoApi(productoId, diferencia);
+       
       } else {
         for (let index = 0; index < Math.abs(diferencia); index += 1) {
-          const respuesta = await restarDelCarritoApi(productoId);
-          if (!respuesta.ok) throw new Error("No se pudo disminuir la cantidad");
+          await restarDelCarritoApi(productoId);
+          
         }
       }
       await fetchCarrito();
@@ -70,9 +71,8 @@ const Carrito = () => {
     }
   };
 
-  // ✅ FUNCIÓN ELIMINAR ITEM (usa restarDelCarritoApi hasta vaciar el producto)
-  const eliminarItem = async (item: any) => {
-    const productoId = String(item.producto?._id || item.productoId);
+  const eliminarItem = async (item: CarritoItem) => {
+    const productoId = String(item.producto?._id || item.producto._id);
     if (!productoId) return;
 
     const confirmacion = await swal.fire({
@@ -126,7 +126,6 @@ const Carrito = () => {
     }
   };
 
-  // ✅ FUNCIÓN COMPRAR (Mercado Pago)
   const handleComprar = async () => {
     if (!usuarioLogueado) return navegacion("/login");
     setLoading(true);
@@ -171,18 +170,35 @@ const Carrito = () => {
       ) : (
         <div className="bg-zinc-900 p-4 rounded-lg">
           <ul className="space-y-4">
-            {carrito.items.map((it: any) => (
+            {carrito.items.map((it: CarritoItem) => (
               <li key={it._id} className="flex items-center gap-4">
-                <img src={it.producto?.imagen} alt={it.producto?.nombreProducto} className="w-20 h-20 object-cover rounded" />
+                <img
+                  src={it.producto?.imagen}
+                  alt={it.producto?.nombreProducto}
+                  className="w-20 h-20 object-cover rounded"
+                />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{it.producto?.nombreProducto}</h3>
+                    <h3 className="font-semibold">
+                      {it.producto?.nombreProducto}
+                    </h3>
                     <div className="text-right">
                       <div className="text-sm text-zinc-400">
-                        Unitario: {(it.producto?.precio || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+                        Unitario:{" "}
+                        {(it.producto?.precio || 0).toLocaleString("es-AR", {
+                          style: "currency",
+                          currency: "ARS",
+                        })}
                       </div>
                       <div className="font-semibold text-zinc-200">
-                        Subtotal: {((Number(it.producto?.precio) || 0) * (Number(it.cantidad) || 0)).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+                        Subtotal:{" "}
+                        {(
+                          (Number(it.producto?.precio) || 0) *
+                          (Number(it.cantidad) || 0)
+                        ).toLocaleString("es-AR", {
+                          style: "currency",
+                          currency: "ARS",
+                        })}
                       </div>
                     </div>
                   </div>
@@ -194,7 +210,9 @@ const Carrito = () => {
                       min="1"
                       value={it.cantidad}
                       disabled={updatingItem === String(it._id)}
-                      onChange={(event) => void actualizarCantidad(it, Number(event.target.value))}
+                      onChange={(event) =>
+                        void actualizarCantidad(it, Number(event.target.value))
+                      }
                       className="w-20 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-center text-zinc-100"
                     />
                     <button
@@ -212,10 +230,20 @@ const Carrito = () => {
           </ul>
 
           <div className="mt-6 flex items-center justify-between">
-            <div className="text-lg font-bold">Total: {calcularTotal().toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</div>
+            <div className="text-lg font-bold">
+              Total:{" "}
+              {calcularTotal().toLocaleString("es-AR", {
+                style: "currency",
+                currency: "ARS",
+              })}
+            </div>
             <div>
-              <button onClick={() => void handleComprar()} disabled={loading} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-semibold">
-                {loading ? 'Redirigiendo...' : 'Comprar'}
+              <button
+                onClick={() => void handleComprar()}
+                disabled={loading}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-semibold"
+              >
+                {loading ? "Redirigiendo..." : "Comprar"}
               </button>
             </div>
           </div>

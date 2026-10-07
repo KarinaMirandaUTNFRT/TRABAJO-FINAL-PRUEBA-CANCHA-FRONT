@@ -4,7 +4,6 @@ export interface CategoriaProducto{
    descripcion: string;
 }
 
-
 export interface Producto {
   _id: string;
   nombreProducto: string;

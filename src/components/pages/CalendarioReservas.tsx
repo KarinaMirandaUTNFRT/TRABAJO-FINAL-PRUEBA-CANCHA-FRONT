@@ -4,17 +4,19 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useNavigate } from "react-router";
 import { obtenerDisponibilidad } from "../services/disponibilidadService";
-import { listarCanchasApi, crearPreferenciaReservaApi } from "../../helpers/queries";
+import {
+  listarCanchasApi,
+  crearPreferenciaReservaApi,
+} from "../../helpers/queries";
 import Swal from "sweetalert2";
 
 const respuesta = await listarCanchasApi();
 const canchasData = await respuesta.json();
 const lista = canchasData.canchas;
 
-  
 const CANCHAS = lista.map((cancha: any) => ({
   id: cancha._id,
-  nombre: cancha.nombreCancha, // o cancha.nombreCancha / cancha.nombre?.cancha según tu backend
+  nombre: cancha.nombreCancha,
 }));
 
 function convertirFechaAISO(fecha: any): string {
@@ -78,27 +80,20 @@ export default function CalendarioReservas() {
         }
       }
     }
-
     if (canchaId && fechaISO) {
       cargarDisponibilidad();
     }
-
     return () => controlador.abort();
   }, [canchaId, fechaISO]);
-
   function seleccionarTurno(turno: any) {
     if (turno.estado?.toLowerCase() !== "disponible") return;
     setTurnoSeleccionado(turno);
   }
-
   function continuarReserva() {
     if (!turnoSeleccionado) return;
-
-    // Verificamos si existe el usuario en localStorage
     const usuarioLogueado = sessionStorage.getItem("usuarioLogueado");
 
     if (!usuarioLogueado) {
-      // Si no está logueado, mostramos advertencia y cortamos la ejecución
       Swal.fire({
         title: "¡Inicia sesión para continuar!",
         text: "Debes estar registrado e iniciar sesión para poder reservar un turno.",
@@ -120,55 +115,44 @@ export default function CalendarioReservas() {
     }
     setMostrarModal(true);
   }
-
-  // Si está logueado, abre el comprobante / proceso de pago
-
-  // 3. Si SÍ está logueado, abrimos el comprobante de reserva
-
- const handleComprar = async () => {
-  if (!usuarioLogueado) return navegacion("/login");
-
-  // Verificamos que tengamos la reserva seleccionada
-  const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
-
-  if (!idReserva) {
-    return Swal.fire("Error", "No se encontró el ID de la reserva a pagar", "error");
-  }
-
-  //setLoading(true);
-
-  try {
-    // 🟢 Le pasamos el ID que el backend va a buscar en MongoDB
-    const resp = await crearPreferenciaReservaApi(idReserva);
-
-    if (!resp.ok) {
-      const errorJson = await resp.json().catch(() => ({}));
-      throw new Error(errorJson.mensaje || "Error al generar la preferencia de pago");
+  const handleComprar = async () => {
+    if (!usuarioLogueado) return navegacion("/login");
+    const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
+    if (!idReserva) {
+      return Swal.fire(
+        "Error",
+        "No se encontró el ID de la reserva a pagar",
+        "error",
+      );
     }
+    try {
+      const resp = await crearPreferenciaReservaApi(idReserva);
 
-    const data = await resp.json();
-    const redirectUrl = data.init_point || data.sandbox_init_point;
+      if (!resp.ok) {
+        const errorJson = await resp.json().catch(() => ({}));
+        throw new Error(
+          errorJson.mensaje || "Error al generar la preferencia de pago",
+        );
+      }
 
-    if (redirectUrl) {
-      // Redirección hacia Mercado Pago
-      window.location.href = redirectUrl;
-    } else {
-      console.error("Respuesta inválida de preferencia", data);
-      Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+      const data = await resp.json();
+      const redirectUrl = data.init_point || data.sandbox_init_point;
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        console.error("Respuesta inválida de preferencia", data);
+        Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+      }
+    } catch (error) {
+      console.error("Error al procesar la compra:", error);
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo iniciar el pago",
+      });
+    } finally {
     }
-  } catch (error) {
-    console.error("Error al procesar la compra:", error);
-    Swal.fire({
-      icon: "error",
-      title: "No se pudo iniciar el pago",
-     //text: error?.message || "Error inesperado",
-    });
-  } finally {
-    //setLoading(false);
-  }
-};
-
-  // Clases dinámicas según el estado (Verde: Disponible, Rojo: Reservado, Amarillo: Pendiente)
+  };
   const getEstilosTurno = (turno: any, isSelected: boolean) => {
     const base =
       "flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition-all duration-150 select-none";
@@ -203,9 +187,7 @@ export default function CalendarioReservas() {
           Seleccioná la fecha y asegurá tu partido.
         </p>
       </header>
-
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Selector y Calendario */}
         <div className="lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 h-fit">
           <label
             htmlFor="cancha"
@@ -225,7 +207,6 @@ export default function CalendarioReservas() {
               </option>
             ))}
           </select>
-
           <div className="calendar-wrapper overflow-hidden rounded-xl border border-slate-200">
             <Calendar
               onChange={(val) => {
@@ -238,8 +219,6 @@ export default function CalendarioReservas() {
             />
           </div>
         </div>
-
-        {/* Panel de Horarios */}
         <div className="lg:col-span-8 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-emerald-100">
           <h2 className="text-2xl font-bold text-slate-800 mb-6 capitalize border-b-2 border-emerald-100 pb-4">
             Turnos del{" "}
@@ -251,14 +230,11 @@ export default function CalendarioReservas() {
               })}
             </span>
           </h2>
-
-          {/* Leyenda */}
           <div className="flex flex-wrap gap-6 mb-8 text-sm font-medium text-slate-600">
             <span className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
               Disponible
             </span>
-            
           </div>
 
           {cargando && (
@@ -309,8 +285,6 @@ export default function CalendarioReservas() {
               })}
             </div>
           )}
-
-          {/* Barra de Reserva seleccionada */}
           {turnoSeleccionado && (
             <div className="mt-10 bg-slate-900 text-white p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl border-t-4 border-emerald-500">
               <div className="flex gap-8 w-full md:w-auto">
@@ -331,7 +305,6 @@ export default function CalendarioReservas() {
                   </strong>
                 </div>
               </div>
-
               <button
                 type="button"
                 onClick={continuarReserva}
@@ -343,11 +316,9 @@ export default function CalendarioReservas() {
           )}
         </div>
       </div>
-      {/* 3. MODAL COMPROBANTE DE RESERVA / PAGO */}
       {mostrarModal && turnoSeleccionado && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full relative shadow-2xl border border-slate-100 space-y-6 animate-fadeIn">
-            {/* Botón Cruz de Cierre */}
             <button
               type="button"
               onClick={() => setMostrarModal(false)}
@@ -356,8 +327,6 @@ export default function CalendarioReservas() {
             >
               ✕
             </button>
-
-            {/* Encabezado del Comprobante */}
             <div className="text-center border-b border-slate-100 pb-4">
               <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
                 ⚽
@@ -369,13 +338,12 @@ export default function CalendarioReservas() {
                 Revisá los datos antes de realizar el pago
               </p>
             </div>
-
-            {/* Datos de la Cancha y Turno */}
             <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-sm">
               <div className="flex justify-between items-center text-slate-600">
                 <span>Cancha:</span>
                 <strong className="text-slate-900 font-bold">
-                  {CANCHAS.find((e: any)=>e.id === canchaId)?.nombre || "Cancha seleccionada"}
+                  {CANCHAS.find((e: any) => e.id === canchaId)?.nombre ||
+                    "Cancha seleccionada"}
                 </strong>
               </div>
               <div className="flex justify-between items-center text-slate-600">
@@ -403,8 +371,6 @@ export default function CalendarioReservas() {
                 </strong>
               </div>
             </div>
-
-            {/* Botón Pagar */}
             <button
               type="button"
               onClick={handleComprar}

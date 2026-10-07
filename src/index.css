@@ -1,9 +1,5 @@
 @import "tailwindcss";
-/* -----------------------------------------
-   SOBRESCRITURA DE REACT-CALENDAR
------------------------------------------ */
 
-/* Contenedor principal del calendario */
 .react-calendar {
   width: 100% !important;
   background: white !important;
@@ -12,7 +8,6 @@
   line-height: 1.5em;
 }
 
-/* Navegación (Mes/Año, flechas) */
 .react-calendar__navigation {
   display: flex;
   height: 48px;
@@ -26,7 +21,7 @@
   border-radius: 8px;
   font-weight: 700;
   font-size: 1rem;
-  color: #1e293b; /* slate-800 */
+  color: #1e293b; 
   transition: background-color 0.2s ease;
   cursor: pointer;
 }
@@ -37,25 +32,22 @@
 
 .react-calendar__navigation button:enabled:hover,
 .react-calendar__navigation button:enabled:focus {
-  background-color: #f1f5f9; /* slate-100 */
+  background-color: #f1f5f9; 
 }
 
-/* Días de la semana (L, M, M, J, V, S, D) */
 .react-calendar__month-view__weekdays {
   text-align: center;
   text-transform: uppercase;
   font-weight: 800;
   font-size: 0.75rem;
-  color: #64748b; /* slate-500 */
+  color: #64748b; 
   margin-bottom: 8px;
 }
 
-/* Quitar la línea punteada de los días de la semana */
 .react-calendar__month-view__weekdays__weekday abbr {
   text-decoration: none !important;
 }
 
-/* Casillas de los días */
 .react-calendar__tile {
   background: none;
   border: none;
@@ -63,37 +55,33 @@
   padding: 12px 8px;
   font-weight: 600;
   font-size: 0.95rem;
-  color: #334155; /* slate-700 */
-  border-radius: 10px; /* Bordes redondeados */
+  color: #334155;
+  border-radius: 10px;
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
-/* Hover de los días */
 .react-calendar__tile:enabled:hover,
 .react-calendar__tile:enabled:focus {
-  background-color: #d1fae5 !important; /* emerald-100 */
-  color: #047857 !important; /* emerald-700 */
+  background-color: #d1fae5 !important;
+  color: #047857 !important;
 }
 
-/* Día actual (Hoy) */
 .react-calendar__tile--now {
-  background: #f8fafc; /* slate-50 */
-  color: #10b981; /* emerald-500 */
-  border: 2px solid #34d399 !important; /* emerald-400 */
+  background: #f8fafc;
+  color: #10b981; 
+  border: 2px solid #34d399 !important; 
 }
 
-/* Día seleccionado */
 .react-calendar__tile--active,
 .react-calendar__tile--active:enabled:hover,
 .react-calendar__tile--active:enabled:focus {
-  background-color: #10b981 !important; /* emerald-500 */
+  background-color: #10b981 !important;
   color: white !important;
   font-weight: 700;
   box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
 }
 
-/* Días de meses adyacentes (los que se ven grises) */
 .react-calendar__month-view__days__day--neighboringMonth {
-  color: #cbd5e1 !important; /* slate-300 */
+  color: #cbd5e1 !important;
 }

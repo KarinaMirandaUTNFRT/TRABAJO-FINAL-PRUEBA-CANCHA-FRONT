@@ -1,7 +1,7 @@
 import { GiShoppingCart } from "react-icons/gi";
 import type { Producto } from "../../interfaces/productos";
-import { useState } from "react";
-import { Link, useNavigate} from "react-router";
+import { useState, memo } from "react";
+import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { useAppContext } from "../../context/AppContext";
 import { agregarAlCarritoApi } from "../../helpers/queries";
@@ -19,7 +19,7 @@ const CardProducto = ({ producto }: CardProductoProps) => {
   const handleAgregar = async () => {
     if (cantidad < 1) return;
 
-if (!usuarioLogueado) {
+    if (!usuarioLogueado) {
       Swal.fire({
         icon: "warning",
         title: "Inicia sesión",
@@ -34,29 +34,27 @@ if (!usuarioLogueado) {
 
     try {
       setCargando(true);
-      // 👈 2. Llamada real al backend enviando el producto y cantidad
       const resp = await agregarAlCarritoApi(idProducto, cantidad);
 
       if (!resp.ok) {
         throw new Error("No se pudo agregar al carrito");
       }
 
-      // Actualizar el contador global del carrito en el navbar si existe
       if (refreshCarritoCount) {
         await refreshCarritoCount();
       }
-      
-    Swal.fire({
-      toast: true,
-      position: "top-end",
-      icon: "success",
-      title: `${cantidad}x ${producto.nombreProducto} agregado`,
-      showConfirmButton: false,
-      timer: 1500,
-      background: "#18181b",
-      color: "#f4f4f5",
-    });
-  }catch (error) {
+
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: `${cantidad}x ${producto.nombreProducto} agregado`,
+        showConfirmButton: false,
+        timer: 1500,
+        background: "#18181b",
+        color: "#f4f4f5",
+      });
+    } catch (error) {
       console.error(error);
       Swal.fire({
         icon: "error",
@@ -70,13 +68,12 @@ if (!usuarioLogueado) {
 
   return (
     <div className="w-full max-w-sm bg-white rounded-2xl shadow-md overflow-hidden border-b-4 border-green-600 hover:shadow-2xl transition-shadow duration-300 relative flex flex-col">
-      {/* Contenedor Superior: Imagen y Categoría */}
       <div className="relative h-52 w-full bg-white flex justify-center">
         <img
           src={producto.imagen}
           alt={`Imagen de la cancha ${producto.nombreProducto}`}
           className="h-full object-contain p-2"
-        onError={(e) => {
+          onError={(e) => {
             e.currentTarget.src =
               "https://res.cloudinary.com/ddhyg9uee/image/upload/v1788274566/rollingclub_nohrp6.png";
           }}
@@ -85,7 +82,6 @@ if (!usuarioLogueado) {
           {producto.categoria.nombre}
         </div>
       </div>
-      {/* Contenedor Inferior: Textos y Acciones */}
       <div className="p-5 flex flex-col grow">
         <h3 className="text-2xl font-black text-slate-800 uppercase italic tracking-tight mb-2">
           {producto.nombreProducto}
@@ -94,8 +90,6 @@ if (!usuarioLogueado) {
         <p className="text-slate-600 text-sm mb-6 line-clamp-3">
           {producto.descripcion}
         </p>
-
-        {/* Borde inferior (Precio y Botón) */}
         <div className="border-t-2 border-dashed border-green-200 pt-4 mt-auto flex flex-col gap-3">
           <div>
             <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
@@ -107,7 +101,6 @@ if (!usuarioLogueado) {
               {Number(producto.precio).toLocaleString("es-AR")}
             </span>
           </div>
-{/* Selector de Cantidad + Botón Agregar */}
           <div className="flex gap-2 items-center">
             <input
               type="number"
@@ -117,7 +110,6 @@ if (!usuarioLogueado) {
               onChange={(e) => setCantidad(Math.max(1, Number(e.target.value)))}
               className="w-16 bg-slate-100 text-slate-900 font-bold text-center py-2.5 px-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
-
             <button
               onClick={handleAgregar}
               disabled={cargando}
@@ -127,8 +119,6 @@ if (!usuarioLogueado) {
               <span>{cargando ? "Agregando..." : "Agregar"}</span>
             </button>
           </div>
-
-          {/* Botón Ver Detalle (Azul ancho) */}
           <Link
             to={`/productos/detalle/${producto._id}`}
             className="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
@@ -141,4 +131,4 @@ if (!usuarioLogueado) {
   );
 };
 
-export default CardProducto;
+export default memo(CardProducto);

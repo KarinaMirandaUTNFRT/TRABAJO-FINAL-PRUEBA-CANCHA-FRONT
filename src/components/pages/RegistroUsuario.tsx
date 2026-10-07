@@ -3,13 +3,10 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router";
 
 interface RegistroFormInputs {
-  //nombre: string;
-  //apellido?: string;
   nombreUsuario?: string;
   email: string;
   password: string;
   confirmPassword: string;
-  //telefono?: string;
 }
 
 const RegistroUsuario = () => {
@@ -25,11 +22,11 @@ const RegistroUsuario = () => {
   const passwordValor = watch("password");
 
   const onSubmit = async (data: RegistroFormInputs) => {
-        const datosParaBackend = {
+    const datosParaBackend = {
       nombreUsuario: data.nombreUsuario,
       email: data.email,
       password: data.password,
-      rol: "cliente", // Enviamos el rol tal cual lo espera Postman
+      rol: "cliente",
     };
 
     try {
@@ -39,48 +36,47 @@ const RegistroUsuario = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(datosParaBackend),
-        }
+        },
       );
 
       const resultado = await respuesta.json();
 
       if (respuesta.status === 201 || respuesta.ok) {
         const { value: codigoIngresado } = await Swal.fire({
-        title: "¡Código de Verificación!",
-        text: `Ingresa el código enviado a Mailtrap para ${data.email}:`,
-        input: "text",
-        inputPlaceholder: "Ej: 970689",
-        showCancelButton: true,
-        confirmButtonText: "Verificar Cuenta",
-        cancelButtonText: "Verificar más tarde",
-        background: "#1e293b",
-        color: "#f8fafc",
-        confirmButtonColor: "#22c55e",
-        cancelButtonColor: "#64748b",
-        inputValidator: (value) => {
-          if (!value) {
-            return "Debes ingresar el código recibido.";
-          }
-        },
-      });
+          title: "¡Código de Verificación!",
+          text: `Ingresa el código enviado a Mailtrap para ${data.email}:`,
+          input: "text",
+          inputPlaceholder: "Ej: 970689",
+          showCancelButton: true,
+          confirmButtonText: "Verificar Cuenta",
+          cancelButtonText: "Verificar más tarde",
+          background: "#1e293b",
+          color: "#f8fafc",
+          confirmButtonColor: "#22c55e",
+          cancelButtonColor: "#64748b",
+          inputValidator: (value) => {
+            if (!value) {
+              return "Debes ingresar el código recibido.";
+            }
+          },
+        });
 
-      // 2. Si el usuario ingresó el código, consumimos el endpoint de verificación
-      if (codigoIngresado) {
-        const respuestaVerif = await fetch(
-          "https://alquiler-cancha-proyecto-final-backend.onrender.com/api/usuarios/verificar-cuenta",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: data.email,
-              codigo: codigoIngresado.trim(),
-            }),
-          }
-        );
+        if (codigoIngresado) {
+          const respuestaVerif = await fetch(
+            "https://alquiler-cancha-proyecto-final-backend.onrender.com/api/usuarios/verificar-cuenta",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: data.email,
+                codigo: codigoIngresado.trim(),
+              }),
+            },
+          );
 
-        const dataVerif = await respuestaVerif.json();
+          const dataVerif = await respuestaVerif.json();
 
-        if (respuestaVerif.ok) {
+          if (respuestaVerif.ok) {
             await Swal.fire({
               title: "¡Cuenta Activada!",
               text:
@@ -93,7 +89,6 @@ const RegistroUsuario = () => {
             });
             navegacion("/login");
           } else {
-            // El código ingresado fue incorrecto o expiró
             Swal.fire({
               title: "Código incorrecto",
               text:
@@ -106,11 +101,9 @@ const RegistroUsuario = () => {
             });
           }
         } else {
-          // El usuario canceló la carga del código
           navegacion("/login");
         }
       } else {
-        // Falló la creación inicial del usuario (ej: correo repetido)
         Swal.fire({
           title: "Error al registrar",
           text: resultado?.mensaje || "No se pudo completar el registro.",
@@ -150,7 +143,6 @@ const RegistroUsuario = () => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Nombre */}
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-1">
               Nombre y Apellido (*)
@@ -171,8 +163,6 @@ const RegistroUsuario = () => {
               </span>
             )}
           </div>
-
-          {/* Email */}
           <div>
             <label
               htmlFor="email"
@@ -200,14 +190,12 @@ const RegistroUsuario = () => {
               </span>
             )}
           </div>
-          {/* Contrase;a */}
-           <div>
+          <div>
             <label
               htmlFor="password"
               className="block text-sm font-medium text-zinc-300 mb-1"
             >
-              Contraseña (*) 
-              
+              Contraseña (*)
             </label>
             <input
               id="password"
@@ -231,8 +219,6 @@ const RegistroUsuario = () => {
               </span>
             )}
           </div>
-
-          {/* Confirmar Contraseña */}
           <div>
             <label
               htmlFor="confirmPassword"

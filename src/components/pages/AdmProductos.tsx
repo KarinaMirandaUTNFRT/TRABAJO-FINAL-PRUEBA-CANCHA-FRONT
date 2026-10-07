@@ -7,18 +7,15 @@ import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
 const AdmProductos = () => {
-  const [productos, setProductos] = useState<Producto[]>([])
-
+  const [productos, setProductos] = useState<Producto[]>([]);
   useEffect(() => {
-    cargarProductos()
-  }, [])
+    cargarProductos();
+  }, []);
   const cargarProductos = async () => {
-    const respuestaProducto = await listarProductosApi()
+    const respuestaProducto = await listarProductosApi();
     if (respuestaProducto && respuestaProducto.status === 200) {
-      const data = await respuestaProducto.json()
-
-      setProductos(data.productos)
-      console.log("consulta datos :", data.productos)
+      const data = await respuestaProducto.json();
+      setProductos(data.productos);
     } else {
       Swal.fire({
         title: "Ocurrio un error",
@@ -26,11 +23,9 @@ const AdmProductos = () => {
         icon: "success",
       });
     }
-  }
-
+  };
   return (
     <section className="animate-fadeIn space-y-6">
-      {/* Header de la sección */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-400/40 p-6 rounded-2xl border border-slate-300">
         <div>
           <h1 className="text-2xl font-bold text-white">
@@ -41,13 +36,12 @@ const AdmProductos = () => {
         <Link
           to={"/administrador/productos/crear"}
           className="bg-green-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20 active:scale-95 text-center  flex
-           items-center gap-1">
+           items-center gap-1"
+        >
           <LuCirclePlus />
           Agregar Producto
         </Link>
       </div>
-
-      {/* Contenedor de la Tabla con Scroll Horizontal para móviles */}
       <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-900/20">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -56,29 +50,29 @@ const AdmProductos = () => {
                 Item
               </th>
               <th className="px-6 py-4 text-xs uppercase tracking-wider text-zinc-500 font-bold">
-                 Producto
+                Producto
               </th>
               <th className="px-6 py-4 text-xs uppercase tracking-wider text-zinc-500 font-bold">
-                 Descripcion
+                Descripcion
               </th>
               <th className="px-6 py-4 text-xs uppercase tracking-wider text-zinc-500 font-bold text-center">
-               precio
+                precio
               </th>
               <th className="px-6 py-4 text-xs uppercase tracking-wider text-zinc-500 font-bold text-center">
-                Acciones 
+                Acciones
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-400">
             {productos.length > 0 ? (
               productos.map((Producto, indice) => (
-            <ItemTablaProducto 
-            key={Producto._id}
+                <ItemTablaProducto
+                  key={Producto._id}
                   producto={Producto}
                   fila={indice + 1}
                   setProductos={setProductos}
-            />
-            ))
+                />
+              ))
             ) : (
               <tr>
                 <td

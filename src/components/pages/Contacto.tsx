@@ -26,7 +26,6 @@ const Contacto = () => {
         <p className="text-center text-slate-500 text-sm sm:text-base mb-8">
           Déjanos tu consulta o mándanos mensaje en nuestras redes abajo
         </p>
-
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-5"
@@ -45,7 +44,6 @@ const Contacto = () => {
               <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
           <div>
             <input
               type="email"
@@ -63,7 +61,6 @@ const Contacto = () => {
               <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
           <div>
             <input
               type="tel"
@@ -81,7 +78,6 @@ const Contacto = () => {
               <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
           <div>
             <textarea
               placeholder="Escribe detalladamente aquí..."
@@ -98,7 +94,6 @@ const Contacto = () => {
               <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
           <button
             type="submit"
             disabled={isSubmitting}
@@ -107,7 +102,6 @@ const Contacto = () => {
             {isSubmitting ? "Enviando..." : "Enviar"}
           </button>
         </form>
-
         <div className="flex justify-center items-center gap-8 mt-10 pt-6 border-t border-slate-700/60">
           <a
             href="https://instagram.com"

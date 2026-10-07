@@ -44,7 +44,9 @@ const DetalleProducto = () => {
   if (cargando) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">
-        <p className="text-lg font-semibold animate-pulse">Cargando detalle...</p>
+        <p className="text-lg font-semibold animate-pulse">
+          Cargando detalle...
+        </p>
       </div>
     );
   }
@@ -61,12 +63,9 @@ const DetalleProducto = () => {
   return (
     <main className="min-h-[85vh] bg-zinc-950 flex items-center justify-center p-4">
       <div className="w-full max-w-xl bg-zinc-900 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl text-white">
-        {/* Título arriba */}
         <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 tracking-wide">
           {producto.nombreProducto}
         </h1>
-
-        {/* Contenedor Imagen */}
         <div className="w-full h-64 sm:h-80 bg-zinc-800/60 rounded-xl overflow-hidden mb-6 flex items-center justify-center">
           <img
             src={producto.imagen}
@@ -78,8 +77,6 @@ const DetalleProducto = () => {
             }}
           />
         </div>
-
-        {/* Datos descriptivos */}
         <div className="space-y-3 mb-6 text-base sm:text-lg">
           <p>
             <span className="font-semibold text-zinc-100">Precio: </span>
@@ -90,16 +87,18 @@ const DetalleProducto = () => {
 
           <p>
             <span className="font-semibold text-zinc-100">Categoría: </span>
-            <span className="text-zinc-300 capitalize">{nombreCategoria || "Sin categoría"}</span>
+            <span className="text-zinc-300 capitalize">
+              {nombreCategoria || "Sin categoría"}
+            </span>
           </p>
 
           <p>
             <span className="font-semibold text-zinc-100">Descripción: </span>
-            <span className="text-zinc-300 font-light">{producto.descripcion}</span>
+            <span className="text-zinc-300 font-light">
+              {producto.descripcion}
+            </span>
           </p>
         </div>
-
-        {/* Botón Volver */}
         <div>
           <button
             type="button"

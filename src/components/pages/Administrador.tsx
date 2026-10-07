@@ -7,18 +7,15 @@ import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
 const Administrador = () => {
-  const [canchas, setCanchas] = useState<Cancha[]>([])
-
+  const [canchas, setCanchas] = useState<Cancha[]>([]);
   useEffect(() => {
-    cargarCanchas()
-  }, [])
+    cargarCanchas();
+  }, []);
   const cargarCanchas = async () => {
-    const respuestaCancha = await listarCanchasApi()
+    const respuestaCancha = await listarCanchasApi();
     if (respuestaCancha && respuestaCancha.status === 200) {
-      const data = await respuestaCancha.json()
-
-      setCanchas(data.canchas)
-      console.log("consulta datos :", data.canchas)
+      const data = await respuestaCancha.json();
+      setCanchas(data.canchas);
     } else {
       Swal.fire({
         title: "Ocurrio un error",
@@ -26,10 +23,9 @@ const Administrador = () => {
         icon: "success",
       });
     }
-  }
+  };
   return (
     <section className="animate-fadeIn space-y-6">
-      {/* Header de la sección */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-400/40 p-6 rounded-2xl border border-slate-300">
         <div>
           <h1 className="text-2xl font-bold text-white">
@@ -40,13 +36,12 @@ const Administrador = () => {
         <Link
           to={"/administrador/canchas/crear"}
           className="bg-green-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20 active:scale-95 text-center  flex
-           items-center gap-1">
+           items-center gap-1"
+        >
           <LuCirclePlus />
           Agregar Cancha
         </Link>
       </div>
-
-      {/* Contenedor de la Tabla con Scroll Horizontal para móviles */}
       <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-zinc-900/20">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -66,7 +61,6 @@ const Administrador = () => {
               <th className="px-6 py-4 text-xs uppercase tracking-wider text-zinc-500 font-bold text-center">
                 Acciones
               </th>
-
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/50">
@@ -89,11 +83,9 @@ const Administrador = () => {
                 </td>
               </tr>
             )}
-
           </tbody>
         </table>
       </div>
-
     </section>
   );
 };

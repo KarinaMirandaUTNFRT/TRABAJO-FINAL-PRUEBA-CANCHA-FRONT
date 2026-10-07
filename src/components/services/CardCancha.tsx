@@ -1,16 +1,13 @@
-import type { Cancha } from '../../interfaces/canchas';
+import type { Cancha } from "../../interfaces/canchas";
 
 interface CardCanchaProps {
-  cancha: Cancha,
+  cancha: Cancha;
   onVerTurnos: (cancha: Cancha) => void;
 }
 
 const CardCancha = ({ cancha, onVerTurnos }: CardCanchaProps) => {
-  
   return (
     <div className="w-full max-w-sm bg-white rounded-2xl shadow-md overflow-hidden border-b-4 border-green-600 hover:shadow-2xl transition-shadow duration-300 relative flex flex-col mx-auto">
-
-      {/* Contenedor Superior: Imagen y Categoría */}
       <div className="relative h-52 w-full bg-slate-200">
         <img
           src={cancha.imagen}
@@ -21,29 +18,20 @@ const CardCancha = ({ cancha, onVerTurnos }: CardCanchaProps) => {
           {cancha.categoria.nombre}
         </div>
       </div>
-
-      {/* Contenedor Inferior: Textos y Acciones */}
       <div className="p-5 flex flex-col grow">
-
         <h3 className="text-2xl font-black text-slate-800 uppercase italic tracking-tight mb-2">
           {cancha.nombreCancha}
         </h3>
-
         <p className="text-slate-600 text-sm mb-6 line-clamp-3">
           {cancha.descripcion}
         </p>
-
-        {/* Borde inferior (Precio y Botón) */}
         <div className="flex justify-center items-end border-t-2 border-dashed border-green-200 pt-4 mt-auto">
-
-          {/* Botón Ver Turnos */}
           <button
             onClick={() => onVerTurnos(cancha)}
             className="bg-slate-900 hover:bg-green-600 text-white font-bold py-2.5 px-3 rounded-xl shadow-md transition-colors duration-300 transform active:scale-95 uppercase text-[10px] tracking-wider text-center max-w-32.5 cursor-pointer"
           >
             Ver Turnos disponibles
           </button>
-
         </div>
       </div>
     </div>

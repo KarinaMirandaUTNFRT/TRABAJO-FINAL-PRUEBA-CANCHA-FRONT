@@ -1,4 +1,3 @@
-//import React from 'react';
 import type { Cancha } from "../../interfaces/canchas";
 import CardCancha from "../services/CardCancha";
 

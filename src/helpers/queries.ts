@@ -1,5 +1,7 @@
-import type {  CanchaFormData } from "../interfaces/canchas";
+import type { CanchaFormData } from "../interfaces/canchas";
 import type { Producto, ProductoFormData } from "../interfaces/productos";
+import { httpClient } from "./httpClient";
+import type { ICarrito } from "../interfaces/carrito";
 
 const urlCanchas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/canchas`;
 const urlReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/disponibles`;
@@ -14,7 +16,6 @@ const urlMisReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/mis-re
 const urlReservasTotales = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas`;
 
 export interface ListarProductosParams {
-  // support both legacy frontend names and backend names
   paginaNumero?: number;
   cantProductos?: number;
   pagina?: number;
@@ -22,7 +23,6 @@ export interface ListarProductosParams {
   termino?: string;
 }
 export interface ListarReservasParams {
-  // support both legacy frontend names and backend names
   paginaNumero?: number;
   cantReservas?: number;
   pagina?: number;
@@ -31,8 +31,7 @@ export interface ListarReservasParams {
 }
 
 export const listarCanchasApi = async (): Promise<Response> => {
- try {
-
+  try {
     const respuesta = await fetch(urlCanchas);
     return respuesta;
   } catch (error) {
@@ -40,7 +39,7 @@ export const listarCanchasApi = async (): Promise<Response> => {
     throw error;
   }
 };
-  
+
 export const buscarCanchaApi = async (id: string): Promise<Response> => {
   try {
     const respuesta = await fetch(`${urlCanchas}/${id}`);
@@ -51,15 +50,18 @@ export const buscarCanchaApi = async (id: string): Promise<Response> => {
   }
 };
 
-export const crearCanchaApi = async (cancha: CanchaFormData): Promise<Response> => {
+export const crearCanchaApi = async (
+  cancha: CanchaFormData,
+): Promise<Response> => {
   try {
-    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+    const token =
+      sessionStorage.getItem("token") || localStorage.getItem("token");
     const respuesta = await fetch(urlCanchas, {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
-         "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(cancha),
     });
@@ -70,26 +72,6 @@ export const crearCanchaApi = async (cancha: CanchaFormData): Promise<Response> 
   }
 };
 
-
-// export const editarCanchaApi = async (
-//   id: string,
-//   cancha: CanchaFormData,
-// ): Promise<Response> => {
-//   try {
-//     const respuesta = await fetch(`${urlCanchas}/${id}`, {
-//       method: "PUT",
-//       credentials: "include",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(cancha),
-//     });
-//     return respuesta;
-//   } catch (error) {
-//     console.error(`Error al editar la cancha con id ${id}:`, error);
-//     throw error;
-//   }
-// };
 export const editarCanchaApi = async (
   id: string,
   cancha: CanchaFormData,
@@ -114,27 +96,23 @@ export const borrarCanchaApi = async (id: string): Promise<Response> => {
   try {
     const respuesta = await fetch(`${urlCanchas}/${id}`, {
       method: "DELETE",
-     credentials: "include",
-     headers: {
+      credentials: "include",
+      headers: {
         "Content-Type": "application/json",
       },
     });
     return respuesta;
-    //console.log("Token enviado al borrar:", token);
   } catch (error) {
     console.error(`Error al borrar la cancha con id ${id}:`, error);
     throw error;
   }
 };
 
-
-
 export const listarReservasApiAdm = async (
   params: ListarReservasParams = {},
 ): Promise<Response> => {
   try {
- const query = new URLSearchParams();
-    // Backend espera `pagina` y `limite`. el termino es optativo
+    const query = new URLSearchParams();
     const pagina = params.pagina ?? params.paginaNumero ?? 1;
     const limite = params.limite ?? params.cantReservas ?? 8;
     query.set("pagina", String(pagina));
@@ -154,8 +132,7 @@ export const listarReservasApiCliente = async (
   params: ListarReservasParams = {},
 ): Promise<Response> => {
   try {
- const query = new URLSearchParams();
-    // Backend espera `pagina` y `limite`. el termino es optativo
+    const query = new URLSearchParams();
     const pagina = params.pagina ?? params.paginaNumero ?? 1;
     const limite = params.limite ?? params.cantReservas ?? 8;
     query.set("pagina", String(pagina));
@@ -182,7 +159,6 @@ export const listarReservasApi = async (
     );
     return respuesta;
   } catch (error: any) {
-    // Si fue cancelada intencionalmente por cambio de fecha o StrictMode, no lo imprimimos como error
     if (error.name === "AbortError") {
       throw error;
     }
@@ -196,7 +172,7 @@ export const borrarReservaApi = async (
   try {
     const respuesta = await fetch(`${urlReservas}/${id}`, {
       method: "DELETE",
-      credentials:'include',
+      credentials: "include",
     });
     return respuesta;
   } catch (error) {
@@ -218,11 +194,10 @@ export const listarCategoriasApi = async (): Promise<any[]> => {
   }
 };
 export const listarProductosApi = async (
-params: ListarProductosParams = {},
+  params: ListarProductosParams = {},
 ): Promise<Response> => {
   try {
- const query = new URLSearchParams();
-    // Backend espera `pagina` y `limite`. el termino es optativo
+    const query = new URLSearchParams();
     const pagina = params.pagina ?? params.paginaNumero ?? 1;
     const limite = params.limite ?? params.cantProductos ?? 8;
     query.set("pagina", String(pagina));
@@ -238,7 +213,6 @@ params: ListarProductosParams = {},
   }
 };
 
-    
 export const listarCategoriasProductosApi = async (): Promise<any[]> => {
   try {
     const respuesta = await fetch(urlCategoriasProductos);
@@ -263,7 +237,7 @@ export const crearProductoApi = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify(producto),
-      credentials:'include',
+      credentials: "include",
     });
     return respuesta;
   } catch (error) {
@@ -278,7 +252,7 @@ export const borrarProductoApi = async (
   try {
     const respuesta = await fetch(`${urlProductos}/${id}`, {
       method: "DELETE",
-      credentials:'include',
+      credentials: "include",
     });
     return respuesta;
   } catch (error) {
@@ -299,8 +273,6 @@ export const buscarProductoApi = async (
   }
 };
 
-// En el PUT, usamos Partial<Producto> si solo envías los campos modificados,
-// o directamente 'Producto' si mandas el objeto completo.
 export const editarProductoApi = async (
   id: string | number,
   producto: Partial<Producto>,
@@ -312,7 +284,7 @@ export const editarProductoApi = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify(producto),
-      credentials:'include',
+      credentials: "include",
     });
     return respuesta;
   } catch (error) {
@@ -328,7 +300,7 @@ export const loginBackendApi = async (usuario: any): Promise<Response> => {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include", 
+      credentials: "include",
       body: JSON.stringify(usuario),
     });
     return respuesta;
@@ -343,36 +315,21 @@ export const logoutBackendApi = async (): Promise<Response> => {
     credentials: "include",
   });
 };
-export const agregarAlCarritoApi = async (
-  productoId: string, 
-  cantidad = 1
+
+export const agregarAlCarritoApi = async (productoId: string, cantidad: number) => {
+ 
+  return await httpClient.post("/carrito/agregar", { productoId, cantidad });
+};
+
+export const restarDelCarritoApi = async (productoId: string) => {
+  return await httpClient.delete(`/carrito/restar/${productoId}`);
+};
+export const eliminarProductoDelCarritoApi = async (
+  productoId: string,
 ): Promise<Response> => {
-  try {
-    const respuesta = await fetch(urlCarrito, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ producto:productoId, cantidad }),
-    });
-    return respuesta;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
-export const restarDelCarritoApi = async (productoId: string): Promise<Response> => {
-  const respuesta = await fetch(`${urlCarrito}/restar/${productoId}`, {
-    method: 'PATCH',
-    credentials: 'include',
-  });
-  return respuesta;
-};
-
-export const eliminarProductoDelCarritoApi = async (productoId: string): Promise<Response> => {
   const respuesta = await fetch(`${urlCarrito}/producto/${productoId}`, {
-    method: 'DELETE',
-    credentials: 'include',
+    method: "DELETE",
+    credentials: "include",
   });
   return respuesta;
 };
@@ -380,70 +337,45 @@ export const eliminarProductoDelCarritoApi = async (productoId: string): Promise
 export const obtenerCantidadCarritoApi = async (): Promise<number> => {
   try {
     const respuesta = await fetch(urlCarrito, {
-      method: 'GET',
-      credentials: 'include',
-    });
-    if (respuesta.status === 401 || respuesta.status === 403) {
-      // usuario no autenticado: no hay carrito accesible
-      return 0;
-    }
-    if (!respuesta.ok) {
-      throw new Error('No se pudo obtener el carrito');
-    }
-    const data = await respuesta.json();
-    if (!data || !Array.isArray(data.items)) return 0;
-    return data.items.reduce((acc: number, it: any) => acc + (Number(it.cantidad) || 0), 0);
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-//🆕 fin consultas carrito
-//🆕 obtener carrito completo
-export const obtenerCarritoApi = async (): Promise<any> => {
-  try {
-    const respuesta = await fetch(urlCarrito, {
       method: "GET",
       credentials: "include",
     });
     if (respuesta.status === 401 || respuesta.status === 403) {
-      return null;
+      return 0;
     }
     if (!respuesta.ok) {
       throw new Error("No se pudo obtener el carrito");
     }
-    return respuesta.json();
+    const data = await respuesta.json();
+    if (!data || !Array.isArray(data.items)) return 0;
+    return data.items.reduce(
+      (acc: number, it: any) => acc + (Number(it.cantidad) || 0),
+      0,
+    );
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
 
-//🆕 crear preferencia de pago (MercadoPago) - backend crea la preferencia y devuelve init_point
-export const crearPreferenciaPagoApi = async (): Promise<Response> => {
-  try {
-    const respuesta = await fetch(`${urlPagoProducto}/crear-preferencia`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    return respuesta;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+export const obtenerCarritoApi = async () => {
+  return await httpClient.get<ICarrito>("/carrito");
 };
 
-export const crearPreferenciaReservaApi = async (reservaId:any) => {
-  // Recuperamos el token/usuario guardado
+export const crearPreferenciaPagoApi = async () => {
+  
+  return await httpClient.post<any>(`${urlPagoProducto}/crear-preferencia`);
+};
+export const crearPreferenciaReservaApi = async (reservaId: any) => {
   const usuario = JSON.parse(sessionStorage.getItem("usuarioLogueado") || "{}");
-  const token = usuario?.token; // Ajusta según la clave donde guardes el token JWT
+  const token = usuario?.token;
 
   return await fetch(`${urlPagoCancha}/crear-preferencia`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Necesario para req.user.id en tu backend
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ reservaId }), // Enviamos el ID que espera req.body
+    body: JSON.stringify({ reservaId }),
   });
 };

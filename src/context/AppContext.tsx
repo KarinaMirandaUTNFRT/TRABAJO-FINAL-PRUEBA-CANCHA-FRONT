@@ -3,9 +3,9 @@ import type { Usuario } from "../interfaces/usuarios";
 
 export interface AppContextType {
   usuarioLogueado: Usuario | null ;
-  loadingSession: boolean; //nuevo state
-  loginBackend: (email: string, pass: string) => Promise<Usuario | null>; //funcion de login
-  logoutBackend: () => Promise<void>; //funcion de logout
+  loadingSession: boolean;
+  loginBackend: (email: string, pass: string) => Promise<Usuario | null>;
+  logoutBackend: () => Promise<void>;
   setUsuarioLogueado: React.Dispatch<React.SetStateAction<Usuario | null>>;
    carritoCount: number;
     setCarritoCount: React.Dispatch<React.SetStateAction<number>>;

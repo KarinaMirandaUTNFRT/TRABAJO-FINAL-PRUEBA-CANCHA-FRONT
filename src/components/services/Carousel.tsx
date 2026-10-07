@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
 
-// 1. Definimos la interfaz para cada diapositiva
 export interface Slide {
   url: string;
   title: string;
   description: string;
 }
-
-// 2. Definimos las props del componente (opcional pero recomendado si quieres pasar las fotos desde afuera)
 interface CarouselProps {
   slides?: Slide[];
   autoSlideInterval?: number;
@@ -15,19 +12,22 @@ interface CarouselProps {
 
 const defaultSlides: Slide[] = [
   {
-    url: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80",
+    url: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=80",
     title: "Viví la Pasión Nocturna",
-    description: "Sistema de iluminación LED profesional para que juegues tus partidos a toda hora sin perderte un detalle del juego.",
+    description:
+      "Sistema de iluminación LED profesional para que juegues tus partidos a toda hora sin perderte un detalle del juego.",
   },
   {
     url: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=80",
     title: "Césped Sintético de Última Generación",
-    description: "Superficie de alta absorción de impacto que cuida tus articulaciones y garantiza un pique óptimo de la pelota.",
+    description:
+      "Superficie de alta absorción de impacto que cuida tus articulaciones y garantiza un pique óptimo de la pelota.",
   },
   {
     url: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=1200&q=80",
     title: "Reservá tu Cancha en Segundos",
-    description: "Elegí el día, la hora y el tipo de cancha desde tu celular de forma rápida y sin complicaciones.",
+    description:
+      "Elegí el día, la hora y el tipo de cancha desde tu celular de forma rápida y sin complicaciones.",
   },
 ];
 
@@ -72,19 +72,19 @@ export default function Carousel({
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Contenedor de la Imagen */}
       <div
         style={{ backgroundImage: `url(${slides[currentIndex].url})` }}
         className="w-full h-full bg-center bg-cover duration-500 relative flex items-end p-8 transition-all"
       >
-        {/* Overlay con texto */}
         <div className="bg-black/40 backdrop-blur-sm p-6 rounded-xl text-white max-w-lg">
-          <h2 className="text-2xl font-bold mb-2">{slides[currentIndex].title}</h2>
-          <p className="text-sm text-gray-200">{slides[currentIndex].description}</p>
+          <h2 className="text-2xl font-bold mb-2">
+            {slides[currentIndex].title}
+          </h2>
+          <p className="text-sm text-gray-200">
+            {slides[currentIndex].description}
+          </p>
         </div>
       </div>
-
-      {/* Flecha Izquierda */}
       <button
         onClick={prevSlide}
         aria-label="Diapositiva anterior"
@@ -92,8 +92,6 @@ export default function Carousel({
       >
         &#10094;
       </button>
-
-      {/* Flecha Derecha */}
       <button
         onClick={nextSlide}
         aria-label="Diapositiva siguiente"
@@ -101,8 +99,6 @@ export default function Carousel({
       >
         &#10095;
       </button>
-
-      {/* Indicadores (Puntos) */}
       <div className="flex justify-center gap-2 pt-4">
         {slides.map((_, slideIndex) => (
           <button

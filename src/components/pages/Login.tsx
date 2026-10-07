@@ -7,6 +7,7 @@ interface LoginFormInputs {
   email: string;
   password: string;
 }
+
 const Login = () => {
   const { setUsuarioLogueado } = useAppContext();
   const {
@@ -19,16 +20,17 @@ const Login = () => {
   const onSubmit = async (data: LoginFormInputs) => {
     try {
       const URL_API = import.meta.env.VITE_ALQUILER_CANCHAS;
-      const respuesta = await fetch(`${URL_API}/usuarios/login`,
-       
-               {
+     const respuesta = await fetch(`${URL_API}/usuarios/login`,
+        
+        {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-        });
+        },
+      );
 
       const resultado = await respuesta.json();
 
@@ -95,14 +97,13 @@ const Login = () => {
             Iniciar Sesión
           </h2>
           <p className="mt-2 text-center text-sm text-zinc-400">
-            Accede al panel de {" "}
+            Accede al panel de{" "}
             <span className="text-green-500 font-semibold">RollingClub</span>
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
-            {/* Email Field */}
             <div>
               <label
                 htmlFor="email"
@@ -119,8 +120,7 @@ const Login = () => {
                 {...register("email", {
                   required: "El email es obligatorio",
                   pattern: {
-                    value:
-                           /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
                     message: "Email no válido",
                   },
                 })}
@@ -131,8 +131,6 @@ const Login = () => {
                 </p>
               )}
             </div>
-
-            {/* Password Field */}
             <div>
               <label
                 htmlFor="password"
@@ -171,15 +169,15 @@ const Login = () => {
             >
               Ingresar al sistema
             </button>
-            </div>
-            <p className="text-center text-sm text-[#64748B] mt-6">
-          ¿No tienes cuenta?{" "}
-          <a
-            href="/registrate"
-            className="text-green-500 hover:text-green-600 font-semibold"
-          >
-            Click Aqui
-          </a>
+          </div>
+          <p className="text-center text-sm text-[#64748B] mt-6">
+            ¿No tienes cuenta?{" "}
+            <a
+              href="/registrate"
+              className="text-green-500 hover:text-green-600 font-semibold"
+            >
+              Click Aqui
+            </a>
           </p>
         </form>
       </div>

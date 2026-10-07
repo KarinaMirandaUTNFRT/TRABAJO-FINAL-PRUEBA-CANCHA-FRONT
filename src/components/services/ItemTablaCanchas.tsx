@@ -7,33 +7,33 @@ import { borrarCanchaApi } from "../../helpers/queries";
 interface ItemTablaCanchaProps {
   cancha: Cancha;
   fila: number;
-  setCanchas: React.Dispatch<React.SetStateAction<Cancha[]>>
+  setCanchas: React.Dispatch<React.SetStateAction<Cancha[]>>;
 }
 
-
-const ItemTablaCanchas = ({ cancha, fila, setCanchas }: ItemTablaCanchaProps) => {
-
-
-
+const ItemTablaCanchas = ({
+  cancha,
+  fila,
+  setCanchas,
+}: ItemTablaCanchaProps) => {
   const eliminarCancha = () => {
     Swal.fire({
       title: "¿Estás seguro?",
       text: "No se puede revertir este proceso",
       icon: "warning",
-      background: "#18181b", // zinc-900
-      color: "#f4f4f5", // zinc-100
+      background: "#18181b",
+      color: "#f4f4f5",
       showCancelButton: true,
-      confirmButtonColor: "#3b82f6", // blue-500
-      cancelButtonColor: "#ef4444", // red-500
+      confirmButtonColor: "#3b82f6",
+      cancelButtonColor: "#ef4444",
       confirmButtonText: "Sí, borrar",
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
         const respuesta = await borrarCanchaApi(cancha._id);
-        console.log("respuesta borrar", respuesta)
         if (respuesta && respuesta.status === 200) {
-          // actualizar la tabla de servicios
-          setCanchas((prevCanchas) => prevCanchas.filter((item) => item._id !== cancha._id))
+          setCanchas((prevCanchas) =>
+            prevCanchas.filter((item) => item._id !== cancha._id),
+          );
           Swal.fire({
             title: "Eliminado",
             text: `la cancha fue eliminada correctamente`,
@@ -52,7 +52,6 @@ const ItemTablaCanchas = ({ cancha, fila, setCanchas }: ItemTablaCanchaProps) =>
             confirmButtonColor: "#3b82f6",
           });
         }
-
       }
     });
   };
@@ -72,7 +71,6 @@ const ItemTablaCanchas = ({ cancha, fila, setCanchas }: ItemTablaCanchaProps) =>
           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-500">
             {cancha.nombreCancha}
           </td>
-
         </div>
       </div>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400 font-mono">
@@ -84,7 +82,6 @@ const ItemTablaCanchas = ({ cancha, fila, setCanchas }: ItemTablaCanchaProps) =>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div className="flex gap-3">
-
           <Link
             to={`/administrador/canchas/editar/${cancha._id}`}
             className="text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1"
@@ -97,7 +94,6 @@ const ItemTablaCanchas = ({ cancha, fila, setCanchas }: ItemTablaCanchaProps) =>
           >
             Borrar <LuTrash2 />
           </button>
-
         </div>
       </td>
     </tr>

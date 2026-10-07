@@ -1,29 +1,114 @@
-# RollingClub
+# ⚽ RollingClub - Plataforma de Gestión Deportiva (Frontend)
 
-Servicio de Alquileres de canchas de fútbol sala y fútbol 5 con tienda incluida.
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
 
----
-
-## 🚀 Tecnologías utilizadas
-
-- **Node.js**
-- **React**
-- **Vite**
-- **MongoDB**
-- **PNPM**
+Frontend de la plataforma **RollingClub**, diseñada para la reserva de canchas de fútbol, gestión de usuarios y un catálogo e-commerce integrado para la compra de indumentaria y bebidas.
 
 ---
 
-## 📋 Requisitos previos
+## 🏗️ Arquitectura de la Aplicación
 
-Antes de comenzar, asegúrate de tener instalado en tu computadora:
+La aplicación está diseñada con una arquitectura basada en componentes modulares, utilizando **Context API** para el estado global y un **Cliente HTTP centralizado** para estandarizar las peticiones al backend (incluyendo interceptores para CORS y CSRF).
 
-- **Node.js** (versión recomendada LTS)
-- **PNPM** (Gestor de paquetes)
+```mermaid
+graph TD
+    subgraph Frontend [React + Vite]
+        UI[Componentes UI / Páginas]
+        Context[Context API - Estado Global]
+        HTTP[Cliente HTTP Centralizado]
+    end
 
+    subgraph Backend [Node.js / Express]
+        API[REST API]
+        DB[(MongoDB)]
+    end
+
+    UI <-->|Lee/Actualiza| Context
+    UI <-->|Dispara peticiones| HTTP
+    HTTP <-->|Fetch API + Tokens CSRF| API
+    API <--> DB
+
+    classDef react fill:#003153,stroke:#61DAFB,stroke-width:2px,color:#fff;
+    classDef node fill:#104d26,stroke:#339933,stroke-width:2px,color:#fff;
+    
+    class UI,Context,HTTP react;
+    class API,DB node;
+
+```
+## 🗺️ Mapa de Rutas y Code Splitting
+El enrutamiento está optimizado mediante React.lazy y Suspense, separando el código en chunks (fragmentos) para que el navegador solo descargue el código de la vista que el usuario está visitando.
+
+```mermaid
+graph LR
+    Root((App Router)) --> Publico(Rutas Públicas)
+    Root --> Privado{Protector Rutas}
+    
+    Publico --> Inicio[Inicio / Home]
+    Publico --> Auth[Login / Registro]
+    Publico --> Store[Catálogo Productos]
+    Store --> Cart[Carrito de Compras]
+    
+    Privado -- "Autenticado (Admin)" --> Admin[Panel Administrador]
+    
+    Admin --> ABMCanchas[Gestión de Canchas]
+    Admin --> ABMProd[Gestión de Productos]
+    Admin --> ABMRes[Gestión de Reservas]
+
+```
+## ✨ Características y Funcionalidades
+
+E-commerce Integrado: Catálogo de productos con filtros de búsqueda local, carrito de compras dinámico y cálculo de subtotales.
+
+Gestión de Reservas: Visualización y alquiler de canchas por turnos para los clientes.
+
+Panel Administrativo (CRUD): Creación, edición y eliminación de productos y canchas exclusivo para administradores.
+
+Autenticación Segura: Manejo de sesiones y protección de rutas.
+
+## 🚀 Optimizaciones y Buenas Prácticas Implementadas
+
+ Rendimiento Visual y de Carga:
+
+Lazy Loading de rutas mediante React.lazy y Suspense.
+
+Memoization (React.memo, useCallback, useMemo) para evitar re-renderizados innecesarios en grillas pesadas como el catálogo.
+
+Implementación de Skeleton Screens (animate-pulse) para transiciones fluidas durante el fetching de datos.
+
+Seguridad HTTP: Cliente fetch centralizado (httpClient.ts) configurado con interceptores para enviar credentials: 'include' (CORS) e inyección automática de cabeceras X-CSRF-Token.
+
+Manejo de Errores: Implementación de Error Boundaries para evitar que fallos en componentes hijos (como el carrito) colapsen toda la aplicación.
+
+Documentación de Código: Uso de JSDoc en componentes y hooks para mejorar la experiencia de desarrollo (IntelliSense) del equipo.
+
+Testing y Calidad: Entorno configurado con Vitest + React Testing Library para pruebas unitarias, y ESLint (Flat Config) con reglas estrictas para TypeScript y Tailwind CSS.
+
+## 📁 Estructura del Proyecto
+
+```Plaintext
+src/
+├── components/
+│   ├── pages/         # Vistas completas de la app (Inicio, Login, Carrito, Admins)
+│   ├── shared/        # Componentes reutilizables (Menú, Footer, Skeletons, ErrorBoundaries)
+│   ├── routes/        # Lógica de protección y enrutamiento
+│   └── services/      # Componentes principales de (Cancha, Producto, Reservas)
+├── context/           # Estado global de la aplicación (AppContext)
+├── helpers/           # Utilidades y cliente HTTP centralizado (queries.ts, httpClient.ts)
+├── interfaces/        # Definiciones de tipos estrictos TypeScript (.d.ts / interfaces)
+├── setupTests.ts      # Configuración global para React Testing Library
+└── App.tsx            # Enrutador principal (React Router)
+```
 ---
 
-## ⚙️ Instalación y Configuración
+## 💻 Instalación y Despliegue Local
+Pre-requisitos
+Node.js v18 o superior
+
+pnpm (Recomendado) o npm
 
 1. **Clonar el repositorio:**
    ```bash
@@ -38,38 +123,32 @@ Antes de comenzar, asegúrate de tener instalado en tu computadora:
    pnpm install
    ```
 4. **Variables de entorno:**
-   Configura el archivo de variables de entorno (.env) dentro del mismo proyecto con las credenciales necesarias (por ejemplo, la conexión a MongoDB y las credenciales de Mercado Pago).
-5. Ejecución del proyecto
+   
+   Crea un archivo .env en la raíz del proyecto basándote en las necesidades del backend: 
+   ``` code fragment
+   VITE_API_URL=http://localhost:3000/api
+   ```
+6. Ejecución del proyecto
    Para iniciar el servidor de desarrollo, ejecuta el siguiente comando:
    ```bash
    pnpm run dev
    ```
 
----
 
-## 📂 Estructura y Características del Proyecto
 
-- La aplicación cuenta con las siguientes funcionalidades principales:
+## 🛠️ Scripts Disponibles  
 
-### Navegación y Autenticación:
+pnpm dev: Inicia el servidor de desarrollo en caliente.
 
-- Sistema de Login diferenciado para perfiles de Cliente o Administrador.
+pnpm build: Compila el código TypeScript y construye la aplicación optimizada para producción en la carpeta dist.
 
-- Barra de navegación (Navbar) intuitiva que centraliza el acceso a todas las secciones.
+pnpm preview: Previsualiza el build localmente simulando el entorno de producción.
 
-- Página de inicio de fácil navegación.
+pnpm lint: Analiza el código buscando errores sintácticos o de clases en TailwindCSS.
 
-- Pie de página (Footer) con información de contacto, enlace al inicio, derechos reservados y sección "Quiénes somos".
+pnpm lint:fix: Aplica correcciones automáticas de ESLint.
 
-### Panel de Administrador:
-
-- Permisos avanzados para editar, agregar y eliminar tanto canchas como productos de la tienda.
-
-### Experiencia de Cliente:
-
-- Carrito de compras integrado para gestionar reservas de canchas y adquisición de productos.
-
-- Procesamiento de pagos seguro mediante Mercado Pago.
+pnpm test: Ejecuta la suite de pruebas unitarias usando Vitest.
 
 ---
 
@@ -78,5 +157,4 @@ Antes de comenzar, asegúrate de tener instalado en tu computadora:
 - **Gabriel Funes**
 - **Ignacio Holmquist**
 - **Patricio Moyano**
-- **Nair Paez**
-- **Karina Miranda**
+
