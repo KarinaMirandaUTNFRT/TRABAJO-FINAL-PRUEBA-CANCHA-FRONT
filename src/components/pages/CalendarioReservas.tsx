@@ -10,15 +10,6 @@ import {
 } from "../../helpers/queries";
 import Swal from "sweetalert2";
 
-const respuesta = await listarCanchasApi();
-const canchasData = await respuesta.json();
-const lista = canchasData.canchas;
-
-const CANCHAS = lista.map((cancha: any) => ({
-  id: cancha._id,
-  nombre: cancha.nombreCancha,
-}));
-
 function convertirFechaAISO(fecha: any): string {
   if (!fecha || !(fecha instanceof Date) || isNaN(fecha.getTime())) {
     const hoy = new Date();
@@ -42,8 +33,9 @@ function formatearPrecio(precio: number) {
 }
 
 export default function CalendarioReservas() {
+  const [canchas, setCanchas] = useState<any[]>([]);
+  const [canchaId, setCanchaId] = useState<string>("");
   const [fechaSeleccionada, setFechaSeleccionada] = useState<Date>(new Date());
-  const [canchaId, setCanchaId] = useState<string>(CANCHAS[0].id);
   const [turnos, setTurnos] = useState<any[]>([]);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<any>(null);
   const [cargando, setCargando] = useState(false);
@@ -52,6 +44,51 @@ export default function CalendarioReservas() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const fechaISO = convertirFechaAISO(fechaSeleccionada);
   const navegacion = useNavigate();
+
+  // 1. Cargar las canchas al montar el componente
+  useEffect(() => {
+    async function cargarCanchas() {
+      try {
+        const respuesta = await listarCanchasApi();
+        console.log("LOG CLAVE - Lo que recibió el componente:", respuesta);
+
+        let lista = [];
+
+        if (Array.isArray(respuesta)) {
+          lista = respuesta;
+        } else if (respuesta && typeof respuesta === "object") {
+          // Buscamos exhaustivamente en todas las propiedades comunes de backends
+          lista = 
+            respuesta.canchas || 
+            respuesta.data?.canchas || 
+            respuesta.data || 
+            respuesta.lista || 
+            respuesta.items || 
+            [];
+            
+          // Si el objeto en sí es un documento único de cancha
+          if (lista.length === 0 && (respuesta._id || respuesta.id)) {
+            lista = [respuesta];
+          }
+        }
+
+        const mapeadas = lista.map((cancha: any) => ({
+          id: cancha._id || cancha.id,
+          nombre: cancha.nombreCancha || cancha.nombre || "Cancha sin nombre",
+        }));
+
+        setCanchas(mapeadas);
+        if (mapeadas.length > 0) {
+          setCanchaId(mapeadas[0].id);
+        }
+      } catch (err) {
+        console.error("Error al listar canchas:", err);
+      }
+    }
+    cargarCanchas();
+  }, []);
+
+  // 2. Cargar disponibilidad cuando cambian la cancha o la fecha
   useEffect(() => {
     const controlador = new AbortController();
 
@@ -85,15 +122,17 @@ export default function CalendarioReservas() {
     }
     return () => controlador.abort();
   }, [canchaId, fechaISO]);
+
   function seleccionarTurno(turno: any) {
     if (turno.estado?.toLowerCase() !== "disponible") return;
     setTurnoSeleccionado(turno);
   }
+
   function continuarReserva() {
     if (!turnoSeleccionado) return;
-    const usuarioLogueado = sessionStorage.getItem("usuarioLogueado");
+    const usuarioLogueadoSesion = sessionStorage.getItem("usuarioLogueado");
 
-    if (!usuarioLogueado) {
+    if (!usuarioLogueadoSesion) {
       Swal.fire({
         title: "¡Inicia sesión para continuar!",
         text: "Debes estar registrado e iniciar sesión para poder reservar un turno.",
@@ -115,6 +154,7 @@ export default function CalendarioReservas() {
     }
     setMostrarModal(true);
   }
+
   const handleComprar = async () => {
     if (!usuarioLogueado) return navegacion("/login");
     const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
@@ -141,7 +181,6 @@ export default function CalendarioReservas() {
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        console.error("Respuesta inválida de preferencia", data);
         Swal.fire("Error", "No se obtuvo la URL de pago", "error");
       }
     } catch (error) {
@@ -150,9 +189,9 @@ export default function CalendarioReservas() {
         icon: "error",
         title: "No se pudo iniciar el pago",
       });
-    } finally {
     }
   };
+
   const getEstilosTurno = (turno: any, isSelected: boolean) => {
     const base =
       "flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition-all duration-150 select-none";
@@ -170,7 +209,6 @@ export default function CalendarioReservas() {
     ) {
       return `${base} bg-red-50/80 border-red-200 text-red-800 cursor-not-allowed opacity-60`;
     }
-    // Pendiente
     return `${base} bg-amber-50/80 border-amber-200 text-amber-900 cursor-not-allowed opacity-60`;
   };
 
@@ -201,7 +239,7 @@ export default function CalendarioReservas() {
             onChange={(e) => setCanchaId(e.target.value)}
             className="w-full mb-8 p-3 border-2 border-emerald-100 rounded-xl bg-slate-50 text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
           >
-            {CANCHAS.map((cancha: any) => (
+            {canchas.map((cancha: any) => (
               <option key={cancha.id} value={cancha.id}>
                 {cancha.nombre}
               </option>
@@ -308,7 +346,7 @@ export default function CalendarioReservas() {
               <button
                 type="button"
                 onClick={continuarReserva}
-                className="w-full md:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-extrabold rounded-xl transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(16,185,129,0.5)]"
+                className="w-full md:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-extrabold rounded-xl transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]"
               >
                 Confirmar Reserva
               </button>
@@ -318,7 +356,7 @@ export default function CalendarioReservas() {
       </div>
       {mostrarModal && turnoSeleccionado && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full relative shadow-2xl border border-slate-100 space-y-6 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full relative shadow-2xl border border-slate-100 space-y-6">
             <button
               type="button"
               onClick={() => setMostrarModal(false)}
@@ -342,7 +380,7 @@ export default function CalendarioReservas() {
               <div className="flex justify-between items-center text-slate-600">
                 <span>Cancha:</span>
                 <strong className="text-slate-900 font-bold">
-                  {CANCHAS.find((e: any) => e.id === canchaId)?.nombre ||
+                  {canchas.find((e: any) => e.id === canchaId)?.nombre ||
                     "Cancha seleccionada"}
                 </strong>
               </div>
@@ -374,7 +412,7 @@ export default function CalendarioReservas() {
             <button
               type="button"
               onClick={handleComprar}
-              className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl transition-all shadow-lg shadow-emerald-500/30 active:scale-95 text-center text-base flex items-center justify-center gap-2"
+              className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl transition-all shadow-lg shadow-emerald-500/30 text-center text-base flex items-center justify-center gap-2"
             >
               💳 Pagar Reserva
             </button>

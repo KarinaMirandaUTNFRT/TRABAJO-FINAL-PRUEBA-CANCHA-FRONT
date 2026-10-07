@@ -4,11 +4,13 @@ import { AppContext } from "./context/AppContext";
 import type { Usuario } from "./interfaces/usuarios";
 import { loginBackendApi } from "./helpers/queries";
 
+
 // --- Importaciones Estáticas ---
 
 import Footer from "./components/shared/Footer";
 import Menu from "./components/shared/Menu";
 import ProtectorRutas from "./components/routes/ProtectorRutas";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // --- Importaciones Dinámicas (Lazy Loading) ---
 
@@ -90,6 +92,7 @@ function App() {
         loginBackend,
       }}
     >
+     <ErrorBoundary>
       <BrowserRouter>
         <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
                    <Menu />
@@ -127,6 +130,7 @@ function App() {
           <Footer />
         </div>
       </BrowserRouter>
+      </ErrorBoundary>
     </AppContext.Provider>
   );
 }

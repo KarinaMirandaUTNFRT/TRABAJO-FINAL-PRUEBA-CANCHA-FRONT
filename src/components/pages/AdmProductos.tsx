@@ -19,7 +19,7 @@ const AdmProductos = () => {
     } else {
       Swal.fire({
         title: "Ocurrio un error",
-        text: `no se puede mostrar las canchas en este momento`,
+        text: `no se puede mostrar los productos en este momento`,
         icon: "success",
       });
     }
@@ -79,7 +79,7 @@ const AdmProductos = () => {
                   colSpan={4}
                   className="px-6 py-12 text-center text-zinc-500 italic"
                 >
-                  No hay canchas registradas para administrar.
+                  No hay productos  registrados para administrar.
                 </td>
               </tr>
             )}

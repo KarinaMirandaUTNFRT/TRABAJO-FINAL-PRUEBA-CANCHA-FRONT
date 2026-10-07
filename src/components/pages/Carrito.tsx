@@ -95,8 +95,8 @@ const Carrito = () => {
       const cantidadTotal = Number(item.cantidad) || 1;
 
       for (let i = 0; i < cantidadTotal; i += 1) {
-        const respuesta = await restarDelCarritoApi(productoId);
-        if (!respuesta.ok) throw new Error("No se pudo eliminar el producto");
+         await restarDelCarritoApi(productoId);
+        
       }
 
       await fetchCarrito();
