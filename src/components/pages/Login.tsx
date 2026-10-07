@@ -19,18 +19,16 @@ const Login = () => {
   const onSubmit = async (data: LoginFormInputs) => {
     try {
       const URL_API = import.meta.env.VITE_ALQUILER_CANCHAS;
-     const respuesta = await fetch(`${URL_API}/usuarios/login`,
-        
+      const respuesta = await fetch(`${URL_API}/usuarios/login`,
        
-        {
+               {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-        },
-      );
+        });
 
       const resultado = await respuesta.json();
 

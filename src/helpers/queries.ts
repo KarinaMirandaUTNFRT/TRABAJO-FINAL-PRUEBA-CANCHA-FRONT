@@ -403,14 +403,14 @@ export const obtenerCantidadCarritoApi = async (): Promise<number> => {
 export const obtenerCarritoApi = async (): Promise<any> => {
   try {
     const respuesta = await fetch(urlCarrito, {
-      method: 'GET',
-      credentials: 'include',
+      method: "GET",
+      credentials: "include",
     });
     if (respuesta.status === 401 || respuesta.status === 403) {
       return null;
     }
     if (!respuesta.ok) {
-      throw new Error('No se pudo obtener el carrito');
+      throw new Error("No se pudo obtener el carrito");
     }
     return respuesta.json();
   } catch (error) {
