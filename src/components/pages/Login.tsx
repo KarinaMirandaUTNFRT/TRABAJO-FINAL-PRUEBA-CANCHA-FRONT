@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { useAppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
+import { httpClient } from "../../helpers/httpClient";
 
 interface LoginFormInputs {
   email: string;
@@ -19,27 +20,15 @@ const Login = () => {
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      const URL_API = import.meta.env.VITE_ALQUILER_CANCHAS;
-     const respuesta = await fetch(`${URL_API}/usuarios/login`,
-        
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        },
-      );
+       const resultado: any = await httpClient.post("/usuarios/login", data);
 
-      const resultado = await respuesta.json();
-
-      if (respuesta.status === 200) {
+      if (resultado) {
         const datosSesion = {
-          _id: resultado.id,
+          _id: resultado.id || resultado._id,
           email: resultado.email,
           nombre: resultado.nombre,
           rol: resultado.rol,
+          token: resultado.token || resultado.jwt, // Aseguramos guardar el token en la sesión
         };
 
         sessionStorage.setItem("usuarioLogueado", JSON.stringify(datosSesion));
@@ -66,21 +55,12 @@ const Login = () => {
           });
           navegacion("/");
         }
-      } else {
-        Swal.fire({
-          title: "Ocurrió un error",
-          text: "Credenciales incorrectas",
-          icon: "error",
-          background: "#18181b",
-          color: "#f4f4f5",
-          confirmButtonColor: "#ef4444",
-        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       Swal.fire({
-        title: "Error de conexión",
-        text: "No se pudo conectar con el servidor",
+        title: "Ocurrió un error",
+        text: error?.message || "Credenciales incorrectas o error de conexión",
         icon: "error",
         background: "#18181b",
         color: "#f4f4f5",
@@ -146,12 +126,6 @@ const Login = () => {
                 placeholder="••••••••"
                 {...register("password", {
                   required: "La contraseña es obligatoria",
-                  pattern: {
-                    value:
-                      /^(?=.*\d)(?=.*[\u0021-\u002b\u003c-\u0040])(?=.*[A-Z])(?=.*[a-z])\S{8,16}$/,
-                    message:
-                      "Debe tener 8-16 caracteres, mayúscula, minúscula, número y símbolo.",
-                  },
                 })}
               />
               {errors.password && (

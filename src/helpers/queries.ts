@@ -29,16 +29,25 @@ export interface ListarReservasParams {
   limite?: number;
   termino?: string;
 }
-
-export const listarCanchasApi = async (): Promise<Response> => {
+ export const listarCanchasApi = async (): Promise<any> => {
   try {
-    const respuesta = await fetch(urlCanchas);
-    return respuesta;
+    const respuesta = await httpClient.get("/canchas");
+        
+    return  respuesta;
   } catch (error) {
-    console.error("Error al listar productos:", error);
+    console.error("Error al listar canchas:", error);
     throw error;
   }
 };
+//  export const listarCanchasApi = async (): Promise<Response> => {
+//    try {
+//      const respuesta = await fetch(urlCanchas);
+//      return respuesta;
+//    } catch (error) {
+//      console.error("Error al listar productos:", error);
+//      throw error;
+//    }
+//  };
 
 export const buscarCanchaApi = async (id: string): Promise<Response> => {
   try {
@@ -72,25 +81,26 @@ export const crearCanchaApi = async (
   }
 };
 
-export const editarCanchaApi = async (
-  id: string,
-  cancha: CanchaFormData,
-): Promise<Response> => {
-  try {
-    const respuesta = await fetch(`${urlCanchas}/${id}`, {
-      method: "PUT",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(cancha),
-    });
-    return respuesta;
-  } catch (error) {
-    console.error(`Error al editar la cancha con id ${id}:`, error);
-    throw error;
-  }
-};
+
+ export const editarCanchaApi = async (
+   id: string,
+   cancha: CanchaFormData,
+ ): Promise<Response> => {
+   try {
+     const respuesta = await fetch(`${urlCanchas}/${id}`, {
+       method: "PUT",
+       credentials: "include",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify(cancha),
+     });
+     return respuesta;
+   } catch (error) {
+     console.error(`Error al editar la cancha con id ${id}:`, error);
+     throw error;
+   }
+ };
 
 export const borrarCanchaApi = async (id: string): Promise<Response> => {
   try {
@@ -316,11 +326,43 @@ export const logoutBackendApi = async (): Promise<Response> => {
   });
 };
 
-export const agregarAlCarritoApi = async (productoId: string, cantidad: number) => {
+// export const agregarAlCarritoApi = async (productoId: string, cantidad: number) => {
  
-  return await httpClient.post("/carrito/agregar", { productoId, cantidad });
+//   return await httpClient.post("/carrito/agregar", { productoId, cantidad });
+// };
+// export const agregarAlCarritoApi = async (productoId: string, cantidad: number) => {
+//   const token = 
+//     sessionStorage.getItem("token") || 
+//     localStorage.getItem("token") || 
+//     sessionStorage.getItem("usuarioLogueado");
+// console.log("token en agregar al carrito", token)
+//   return await httpClient.post("/carrito/agregar", { 
+//     producto: productoId, // O prueba con idProducto: productoId
+//     cantidad 
+//   }, {
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//       //credentials: "include",
+//     },
+//   });
+// };
+export const agregarAlCarritoApi = async (
+  productoId: string,
+  cantidad = 1,
+): Promise<Response> => {
+  try {
+    const respuesta = await fetch(urlCarrito, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ producto: productoId, cantidad }),
+    });
+    return respuesta;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 };
-
 export const restarDelCarritoApi = async (productoId: string) => {
   return await httpClient.delete(`/carrito/restar/${productoId}`);
 };

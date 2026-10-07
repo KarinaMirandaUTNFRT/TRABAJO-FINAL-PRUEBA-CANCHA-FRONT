@@ -8,22 +8,41 @@ import Swal from "sweetalert2";
 
 const Administrador = () => {
   const [canchas, setCanchas] = useState<Cancha[]>([]);
+
   useEffect(() => {
     cargarCanchas();
   }, []);
+
   const cargarCanchas = async () => {
-    const respuestaCancha = await listarCanchasApi();
-    if (respuestaCancha && respuestaCancha.status === 200) {
-      const data = await respuestaCancha.json();
-      setCanchas(data.canchas);
-    } else {
+    try {
+      // Usamos "as any" para evitar el error de tipo unknown provocado por httpClient
+      const respuesta = (await listarCanchasApi()) as any;
+
+      let lista: Cancha[] = [];
+
+      if (Array.isArray(respuesta)) {
+        lista = respuesta;
+      } else if (respuesta && typeof respuesta === "object") {
+        lista = 
+          respuesta.canchas || 
+          respuesta.data?.canchas || 
+          respuesta.data || 
+          respuesta.lista || 
+          respuesta.items || 
+          [];
+      }
+
+      setCanchas(lista);
+    } catch (error) {
+      console.error("Error al cargar las canchas:", error);
       Swal.fire({
-        title: "Ocurrio un error",
-        text: `no se puede mostrar las canchas en este momento`,
-        icon: "success",
+        title: "Ocurrió un error",
+        text: "No se puede mostrar las canchas en este momento",
+        icon: "error",
       });
     }
   };
+
   return (
     <section className="animate-fadeIn space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-400/40 p-6 rounded-2xl border border-slate-300">
@@ -35,8 +54,7 @@ const Administrador = () => {
         </div>
         <Link
           to={"/administrador/canchas/crear"}
-          className="bg-green-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20 active:scale-95 text-center  flex
-           items-center gap-1"
+          className="bg-green-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20 active:scale-95 text-center flex items-center gap-1"
         >
           <LuCirclePlus />
           Agregar Cancha
@@ -76,7 +94,7 @@ const Administrador = () => {
             ) : (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={5}
                   className="px-6 py-12 text-center text-zinc-500 italic"
                 >
                   No hay canchas registradas para administrar.

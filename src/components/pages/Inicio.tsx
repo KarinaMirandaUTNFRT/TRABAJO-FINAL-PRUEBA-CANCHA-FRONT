@@ -8,22 +8,38 @@ import { NavLink } from "react-router";
 
 const Inicio = () => {
   const [canchas, setCanchas] = useState<Cancha[]>([]);
+
   useEffect(() => {
     cargarCanchas();
   }, []);
 
   const cargarCanchas = async () => {
-    const respuestaCancha = await listarCanchasApi();
+    try {
+      const respuesta = await listarCanchasApi();
+      
+      // Manejamos de forma robusta si httpClient devuelve un array directo,
+      // o un objeto del tipo { canchas: [...] }, { data: [...] }, etc.
+      let lista: Cancha[] = [];
 
-    if (respuestaCancha && respuestaCancha.status === 200) {
-      const data = await respuestaCancha.json();
+      if (Array.isArray(respuesta)) {
+        lista = respuesta;
+      } else if (respuesta && typeof respuesta === "object") {
+        lista = 
+          (respuesta as any).canchas || 
+          (respuesta as any).data?.canchas || 
+          (respuesta as any).data || 
+          (respuesta as any).lista || 
+          (respuesta as any).items || 
+          [];
+      }
 
-      setCanchas(data.canchas);
-    } else {
+      setCanchas(lista);
+    } catch (error) {
+      console.error("Error al cargar las canchas:", error);
       Swal.fire({
-        title: "Ocurrio un error",
-        text: `No se puede mostrar las canchas en este momento`,
-        icon: "success",
+        title: "Ocurrió un error",
+        text: "No se puede mostrar las canchas en este momento",
+        icon: "error", // Cambiado a "error" para que sea coherente visualmente
       });
     }
   };

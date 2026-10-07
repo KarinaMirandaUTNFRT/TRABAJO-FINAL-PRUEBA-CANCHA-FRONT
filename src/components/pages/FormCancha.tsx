@@ -69,25 +69,69 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
     }
   };
 
-  const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
-    if (titulo.includes("Crear") && crearCanchaApi) {
-      await crearCanchaApi(data);
-      Swal.fire({
-        title: "La Cancha ha sido creada",
-        text: `La cancha '${data.nombreCancha}' fue creada correctamente`,
-        icon: "success",
-        background: "#18181b",
-        color: "#f4f4f5",
-        confirmButtonColor: "#3b82f6",
-      });
-      navegacion("/administrador/");
-      if (e) {
-        (e.target as HTMLFormElement).reset();
-      }
-    } else if (id) {
-      const respuesta = await editarCanchaApi(id, data);
+  // const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
+  //  try{
+  //   if (titulo.includes("Crear") && crearCanchaApi) {
+  //       await crearCanchaApi(data);
+  //       Swal.fire({
+  //         title: "La Cancha ha sido creada",
+  //         text: `La cancha '${data.nombreCancha}' fue creada correctamente`,
+  //         icon: "success",
+  //         background: "#18181b",
+  //         color: "#f4f4f5",
+  //         confirmButtonColor: "#3b82f6",
+  //       });
+  //       navegacion("/administrador/");
+  //       if (e) {
+  //         (e.target as HTMLFormElement).reset();
+  //       }
+  //     } else if (id) {
+  //       // Con httpClient, si la petición se ejecuta sin saltar al catch, fue exitosa
+  //       await editarCanchaApi(id, data);
+  //       Swal.fire({
+  //         title: "Cancha Editada",
+  //         text: `La cancha '${data.nombreCancha}' fue editada correctamente`,
+  //         icon: "success",
+  //         background: "#18181b",
+  //         color: "#f4f4f5",
+  //         confirmButtonColor: "#3b82f6",
+  //       });
+        
+  //       // Redirigimos al panel de administrador
+  //       navegacion("/administrador/");
+  //     }
+  //   }catch (error) {
+  //     console.error("Error al procesar la operación:", error);
+  //       Swal.fire({
+  //         title: "Ocurrió un Error",
+  //         text: `La cancha'${data.nombreCancha}' no pudo ser editada.`,
+  //         icon: "error",
+  //         background: "#18181b",
+  //         color: "#f4f4f5",
+  //         confirmButtonColor: "#3b82f6",
+  //       });
+  //     }
+  //  };
 
-      if (respuesta.ok) {
+  const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
+    try {
+      if (titulo.includes("Crear") && crearCanchaApi) {
+        await crearCanchaApi(data);
+        Swal.fire({
+          title: "La Cancha ha sido creada",
+          text: `La cancha '${data.nombreCancha}' fue creada correctamente`,
+          icon: "success",
+          background: "#18181b",
+          color: "#f4f4f5",
+          confirmButtonColor: "#3b82f6",
+        });
+        navegacion("/administrador/");
+        if (e) {
+          (e.target as HTMLFormElement).reset();
+        }
+      } else if (id) {
+        // Ejecutamos la edición con httpClient
+        await editarCanchaApi(id, data);
         Swal.fire({
           title: "Cancha Editada",
           text: `La cancha '${data.nombreCancha}' fue editada correctamente`,
@@ -96,20 +140,25 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
           color: "#f4f4f5",
           confirmButtonColor: "#3b82f6",
         });
+        
         navegacion("/administrador/");
-      } else {
-        Swal.fire({
-          title: "Ocurrió un Error",
-          text: `La cancha'${data.nombreCancha}' no pudo ser editada.`,
-          icon: "error",
-          background: "#18181b",
-          color: "#f4f4f5",
-          confirmButtonColor: "#3b82f6",
-        });
       }
+    } catch (error: any) {
+      console.error("Error al procesar la operación:", error);
+      
+      // Capturamos el mensaje exacto del error o de la respuesta del servidor
+      const mensajeError = error?.message || "No se pudo completar la operación";
+
+      Swal.fire({
+        title: "Ocurrió un Error",
+        text: mensajeError, // Muestra el error real para saber qué está fallando
+        icon: "error",
+        background: "#18181b",
+        color: "#f4f4f5",
+        confirmButtonColor: "#3b82f6",
+      });
     }
   };
-
   const inputClass = (hasError: boolean) => `
     w-full px-4 py-2.5 bg-zinc-950 border rounded-lg text-zinc-100 
     focus:outline-none focus:ring focus:ring-green-400 transition-all
