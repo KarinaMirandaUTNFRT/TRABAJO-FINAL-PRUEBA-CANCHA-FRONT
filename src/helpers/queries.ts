@@ -354,17 +354,43 @@ export const agregarAlCarritoApi = async (
     throw error;
   }
 };
-export const restarDelCarritoApi = async (productoId: string) => {
-  return await httpClient.delete(`/carrito/restar/${productoId}`);
-};
-export const eliminarProductoDelCarritoApi = async (
-  productoId: string,
-): Promise<Response> => {
-  const respuesta = await fetch(`${urlCarrito}/producto/${productoId}`, {
-    method: "DELETE",
+export const restarDelCarritoApi = async (productoId: string, token?: string): Promise<Response> => {
+  const authToken =
+    token ||
+    JSON.parse(
+      sessionStorage.getItem("usuario") ||
+      localStorage.getItem("usuario") ||
+      "{}"
+    )?.token;
+
+  return await fetch(`http://localhost:3000/api/carrito/restar/${productoId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "x-token": authToken || "",
+      "Authorization": `Bearer ${authToken || ""}`,
+    },
     credentials: "include",
   });
-  return respuesta;
+};
+export const eliminarProductoDelCarritoApi = async (productoId: string, token?: string): Promise<Response> => {
+  const authToken =
+    token ||
+    JSON.parse(
+      sessionStorage.getItem("usuario") ||
+      localStorage.getItem("usuario") ||
+      "{}"
+    )?.token;
+
+  return await fetch(`http://localhost:3000/api/carrito/${productoId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "x-token": authToken || "",
+      "Authorization": `Bearer ${authToken || ""}`,
+    },
+    credentials: "include",
+  });
 };
 
 export const obtenerCantidadCarritoApi = async (): Promise<number> => {

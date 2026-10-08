@@ -3,6 +3,7 @@ import { useAppContext } from "../../context/AppContext";
 import {
   agregarAlCarritoApi,
   crearPreferenciaPagoApi,
+  eliminarProductoDelCarritoApi,
   obtenerCarritoApi,
   restarDelCarritoApi,
 } from "../../helpers/queries";
@@ -92,10 +93,14 @@ const Carrito = () => {
 
     setUpdatingItem(String(item._id));
     try {
-      const cantidadTotal = Number(item.cantidad) || 1;
+      const resp = await eliminarProductoDelCarritoApi(productoId);
 
-      for (let i = 0; i < cantidadTotal; i += 1) {
-         await restarDelCarritoApi(productoId);
+    if (!resp.ok) {
+      throw new Error("Error al eliminar el producto del carrito");
+      //const cantidadTotal = Number(item.cantidad) || 1;
+
+      // for (let i = 0; i < cantidadTotal; i += 1) {
+      //    await restarDelCarritoApi(productoId);
         
       }
 
