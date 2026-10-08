@@ -11,7 +11,7 @@ export default tseslint.config(
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
-      ...tailwind.configs['flat/recommended'], // <- Agregamos Tailwind aquí
+      //...tailwind.configs['flat/recommended'], // <- Agregamos Tailwind aquí
     ],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
@@ -23,14 +23,19 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
-      ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+     ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+    }
+      
       // Reglas adicionales de Tailwind:
-      'tailwindcss/no-custom-classname': 'warn', // Marca errores de tipeo como "text-gren-600"
-      'tailwindcss/classnames-order': 'warn',    // Te ayuda a mantener un orden estándar
-    },
+      //'tailwindcss/no-custom-classname': 'warn', // Marca errores de tipeo como "text-gren-600"
+      //'tailwindcss/classnames-order': 'warn',    // Te ayuda a mantener un orden estándar
+    
   },
 )

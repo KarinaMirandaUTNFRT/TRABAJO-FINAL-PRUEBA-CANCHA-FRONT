@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 interface FormularioCanchaProps {
   titulo: string;
 }
-
 const FormCancha = ({ titulo }: FormularioCanchaProps) => {
   const {
     register,
@@ -25,21 +24,6 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
   const { id } = useParams<{ id: string }>();
   const navegacion = useNavigate();
   const [categorias, setCategorias] = useState<Cancha[]>([]);
-  useEffect(() => {
-    const obtenerCategorias = async () => {
-      try {
-        const respuesta = await listarCategoriasApi();
-        if (Array.isArray(respuesta)) {
-          setCategorias(respuesta);
-        }
-      } catch (error) {
-        console.error("Error al cargar categorías:", error);
-      }
-    };
-    obtenerCategorias();
-    cargarDatos();
-  }, []);
-
   const cargarDatos = async () => {
     if (titulo.includes("Editar cancha") && id && buscarCanchaApi) {
       try {
@@ -65,54 +49,23 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
       } catch (error) {
         console.error("Error de red o al procesar la petición:", error);
       }
-    } else {
     }
   };
-
-  // const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
-  //  try{
-  //   if (titulo.includes("Crear") && crearCanchaApi) {
-  //       await crearCanchaApi(data);
-  //       Swal.fire({
-  //         title: "La Cancha ha sido creada",
-  //         text: `La cancha '${data.nombreCancha}' fue creada correctamente`,
-  //         icon: "success",
-  //         background: "#18181b",
-  //         color: "#f4f4f5",
-  //         confirmButtonColor: "#3b82f6",
-  //       });
-  //       navegacion("/administrador/");
-  //       if (e) {
-  //         (e.target as HTMLFormElement).reset();
-  //       }
-  //     } else if (id) {
-  //       // Con httpClient, si la petición se ejecuta sin saltar al catch, fue exitosa
-  //       await editarCanchaApi(id, data);
-  //       Swal.fire({
-  //         title: "Cancha Editada",
-  //         text: `La cancha '${data.nombreCancha}' fue editada correctamente`,
-  //         icon: "success",
-  //         background: "#18181b",
-  //         color: "#f4f4f5",
-  //         confirmButtonColor: "#3b82f6",
-  //       });
-        
-  //       // Redirigimos al panel de administrador
-  //       navegacion("/administrador/");
-  //     }
-  //   }catch (error) {
-  //     console.error("Error al procesar la operación:", error);
-  //       Swal.fire({
-  //         title: "Ocurrió un Error",
-  //         text: `La cancha'${data.nombreCancha}' no pudo ser editada.`,
-  //         icon: "error",
-  //         background: "#18181b",
-  //         color: "#f4f4f5",
-  //         confirmButtonColor: "#3b82f6",
-  //       });
-  //     }
-  //  };
-
+  
+  useEffect(() => {
+    const obtenerCategorias = async () => {
+      try {
+        const respuesta = await listarCategoriasApi();
+        if (Array.isArray(respuesta)) {
+          setCategorias(respuesta);
+        }
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+    obtenerCategorias();
+    void cargarDatos();
+  }, []);
   const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
     try {
       if (titulo.includes("Crear") && crearCanchaApi) {
@@ -140,12 +93,12 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
           color: "#f4f4f5",
           confirmButtonColor: "#3b82f6",
         });
-        
+
         navegacion("/administrador/");
       }
     } catch (error: any) {
       console.error("Error al procesar la operación:", error);
-      
+
       // Capturamos el mensaje exacto del error o de la respuesta del servidor
       const mensajeError = error?.message || "No se pudo completar la operación";
 

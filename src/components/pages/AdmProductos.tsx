@@ -8,9 +8,6 @@ import Swal from "sweetalert2";
 
 const AdmProductos = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
-  useEffect(() => {
-    cargarProductos();
-  }, []);
   const cargarProductos = async () => {
     const respuestaProducto = await listarProductosApi();
     if (respuestaProducto && respuestaProducto.status === 200) {
@@ -24,6 +21,13 @@ const AdmProductos = () => {
       });
     }
   };
+  useEffect(() => {
+    cargarProductos();
+  }, []);
+
+  
+
+  
   return (
     <section className="animate-fadeIn space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-400/40 p-6 rounded-2xl border border-slate-300">

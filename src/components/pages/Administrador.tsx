@@ -8,12 +8,7 @@ import Swal from "sweetalert2";
 
 const Administrador = () => {
   const [canchas, setCanchas] = useState<Cancha[]>([]);
-
-  useEffect(() => {
-    cargarCanchas();
-  }, []);
-
-  const cargarCanchas = async () => {
+const cargarCanchas = async () => {
     try {
       // Usamos "as any" para evitar el error de tipo unknown provocado por httpClient
       const respuesta = (await listarCanchasApi()) as any;
@@ -42,8 +37,10 @@ const Administrador = () => {
       });
     }
   };
-
-  return (
+  useEffect(() => {
+    cargarCanchas();
+  }, []);
+    return (
     <section className="animate-fadeIn space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-400/40 p-6 rounded-2xl border border-slate-300">
         <div>

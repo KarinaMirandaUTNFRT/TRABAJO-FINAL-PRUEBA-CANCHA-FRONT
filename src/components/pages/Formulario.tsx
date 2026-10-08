@@ -25,22 +25,6 @@ const Formulario = ({ titulo }: FormularioProps) => {
   const { id } = useParams<{ id: string }>();
   const navegacion = useNavigate();
   const [categorias, setCategorias] = useState<Producto[]>([]);
-
-  useEffect(() => {
-    const obtenerCategorias = async () => {
-      try {
-        const respuesta = await listarCategoriasProductosApi();
-        if (Array.isArray(respuesta)) {
-          setCategorias(respuesta);
-        }
-      } catch (error) {
-        console.error("Error al cargar categorías:", error);
-      }
-    };
-    obtenerCategorias();
-    cargarDatos();
-  }, []);
-
   const cargarDatos = async () => {
     if (titulo.includes("Editar") && id && buscarProductoApi) {
       const respuestaProducto = await buscarProductoApi(id);
@@ -57,6 +41,23 @@ const Formulario = ({ titulo }: FormularioProps) => {
       }
     }
   };
+  
+  useEffect(() => {
+    const obtenerCategorias = async () => {
+      try {
+        const respuesta = await listarCategoriasProductosApi();
+        if (Array.isArray(respuesta)) {
+          setCategorias(respuesta);
+        }
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+    obtenerCategorias();
+    void cargarDatos();
+  }, []);
+
+
 
   const onSubmit: SubmitHandler<ProductoFormData> = async (data, e) => {
     if (titulo.includes("Crear") && crearProductoApi) {
