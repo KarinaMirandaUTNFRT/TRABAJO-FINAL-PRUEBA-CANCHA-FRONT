@@ -85,6 +85,7 @@ const fetchRequest = async <T>(endpoint: string, options: RequestOptions = {}): 
     throw error; 
   }
 };
+ 
 
 export const httpClient = {
   get: <T>(endpoint: string, options?: RequestOptions) =>
