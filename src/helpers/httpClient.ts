@@ -99,4 +99,6 @@ export const httpClient = {
 
   delete: <T>(endpoint: string, options?: RequestOptions) =>
     fetchRequest<T>(endpoint, { ...options, method: "DELETE" }),
+   
+    
 };
