@@ -6,11 +6,7 @@ import Swal from "sweetalert2";
 
 const AdmReservas = () => {
   const [reservas, setReservas] = useState<Reserva[]>([]);
-
-  useEffect(() => {
-    cargarReservas();
-  }, []);
-  const cargarReservas = async () => {
+ const cargarReservas = async () => {
     const respuestaReserva = await listarReservasApiAdm();
 
     if (respuestaReserva && respuestaReserva.status === 200) {
@@ -24,6 +20,10 @@ const AdmReservas = () => {
       });
     }
   };
+  useEffect(() => {
+    cargarReservas();
+  }, []);
+ 
   return (
     <section className="animate-fadeIn space-y-6">
       {/* Header de la sección */}

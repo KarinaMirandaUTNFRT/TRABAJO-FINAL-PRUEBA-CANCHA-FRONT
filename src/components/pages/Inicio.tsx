@@ -8,17 +8,11 @@ import { NavLink } from "react-router";
 
 const Inicio = () => {
   const [canchas, setCanchas] = useState<Cancha[]>([]);
-
-  useEffect(() => {
-    cargarCanchas();
-  }, []);
-
-  const cargarCanchas = async () => {
+const cargarCanchas = async () => {
     try {
       const respuesta = await listarCanchasApi();
       
-      // Manejamos de forma robusta si httpClient devuelve un array directo,
-      // o un objeto del tipo { canchas: [...] }, { data: [...] }, etc.
+      
       let lista: Cancha[] = [];
 
       if (Array.isArray(respuesta)) {
@@ -44,6 +38,11 @@ const Inicio = () => {
     }
   };
 
+  useEffect(() => {
+    cargarCanchas();
+  }, []);
+
+  
   return (
     <section className="space-y-8 animate-fadeIn">
       <Carousel />

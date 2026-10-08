@@ -35,13 +35,7 @@ const Inicio = () => {
   const [filtro, setFiltro] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(true); 
   const cantProductos = 8;
-
-  useEffect(() => {
-    cargarProductos(paginaActual, filtro);
-  }, [paginaActual, filtro]);
-
-  
-  const cargarProductos = async (
+const cargarProductos = async (
     paginaNumero: number,
     terminoFiltro: string,
   ) => {
@@ -79,6 +73,12 @@ const Inicio = () => {
       setIsLoading(false); 
     }
   };
+  useEffect(() => {
+    cargarProductos(paginaActual, filtro);
+  }, [paginaActual, filtro]);
+
+  
+  
 
   
   const handleBuscar = useCallback((event: SubmitEvent<HTMLFormElement>) => {

@@ -18,7 +18,7 @@ const RegistroUsuario = () => {
     watch,
     formState: { errors },
   } = useForm<RegistroFormInputs>();
-
+// eslint-disable-next-line react-hooks/incompatible-library
   const passwordValor = watch("password");
 
   const onSubmit = async (data: RegistroFormInputs) => {

@@ -25,7 +25,7 @@ export interface Reserva {
   cancha: Cancha;
   fechaInicio:string;
   horaInicio: string;
-  estado: String;
+  estado: string;
 }
 
 export type  ReservaFormData = Omit<Reserva, '_id'>;

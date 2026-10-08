@@ -44,9 +44,7 @@ const fetchRequest = async <T>(endpoint: string, options: RequestOptions = {}): 
     console.error("Error al extraer el token:", e);
   }
 
-  console.log("Token final enviado en headers:", token ? "PRESENTE" : "FALTANTE");
-
-  const defaultHeaders: HeadersInit = {
+    const defaultHeaders: HeadersInit = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(csrfToken && ["POST", "PUT", "DELETE", "PATCH"].includes(method.toUpperCase()) 
@@ -79,10 +77,10 @@ const fetchRequest = async <T>(endpoint: string, options: RequestOptions = {}): 
     return {} as T;
   } catch (error: any) {
     if (error.name === "AbortError") {
-      throw new Error("La petición tardó demasiado (Timeout). Revisa tu conexión.");
+      throw new Error("La petición tardó demasiado (Timeout). Revisa tu conexión.",{ cause: error });
     }
     if (error.message.includes("Failed to fetch")) {
-      throw new Error("Error de red o bloqueo por CORS. Revisa si el backend está encendido.");
+      throw new Error("Error de red o bloqueo por CORS. Revisa si el backend está encendido.", { cause: error });
     }
     throw error; 
   }
