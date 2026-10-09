@@ -2,6 +2,7 @@ import type { CanchaFormData } from "../interfaces/canchas";
 import type { Producto, ProductoFormData } from "../interfaces/productos";
 import { httpClient } from "./httpClient";
 import type { ICarrito } from "../interfaces/carrito";
+import type { Reserva } from "../interfaces/reserva";
 
 const urlCanchas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/canchas`;
 const urlReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/disponibles`;
@@ -39,15 +40,6 @@ export interface ListarReservasParams {
     throw error;
   }
 };
-//  export const listarCanchasApi = async (): Promise<Response> => {
-//    try {
-//      const respuesta = await fetch(urlCanchas);
-//      return respuesta;
-//    } catch (error) {
-//      console.error("Error al listar productos:", error);
-//      throw error;
-//    }
-//  };
 
 export const buscarCanchaApi = async (id: string): Promise<Response> => {
   try {
@@ -451,4 +443,36 @@ export const crearPreferenciaReservaApi = async (datosTurno: any) => {
     body: JSON.stringify({ datosTurno }), 
     // Envía canchaId, fecha, hora, etc.
   });
+};
+export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
+  let token = localStorage.getItem("token");
+
+  if (!token) {
+    const rawUser = localStorage.getItem("usuarioLogueado");
+    if (rawUser) {
+      try {
+        const usuario = JSON.parse(rawUser);
+        token = usuario?.token;
+      } catch (err) {
+        console.error("Error parseando usuario:", err);
+      }
+    }
+  }
+
+  const resp = await fetch(`${urlPagoCancha}/mis-reservas`, { // Ajusta la ruta a tu endpoint
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "x-token": token || "",
+      "Authorization": `Bearer ${token || ""}`,
+    },
+    credentials: "include",
+  });
+
+  if (!resp.ok) {
+    throw new Error("Error al obtener las reservas");
+  }
+const data: Reserva[] = await resp.json();
+  return data;
+  
 };
