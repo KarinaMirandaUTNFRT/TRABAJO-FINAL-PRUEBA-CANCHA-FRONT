@@ -19,6 +19,7 @@ const CardCancha = ({ cancha, onVerTurnos }: CardCanchaProps) => {
         </div>
       </div>
       <div className="p-5 flex flex-col grow">
+
         <h3 className="text-2xl font-black text-slate-800 uppercase italic tracking-tight mb-2">
           {cancha.nombreCancha}
         </h3>
@@ -32,6 +33,7 @@ const CardCancha = ({ cancha, onVerTurnos }: CardCanchaProps) => {
           >
             Ver Turnos disponibles
           </button>
+
         </div>
       </div>
     </div>
