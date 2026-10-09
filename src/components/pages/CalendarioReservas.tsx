@@ -155,42 +155,91 @@ export default function CalendarioReservas() {
     setMostrarModal(true);
   }
 
-  const handleComprar = async () => {
-    if (!usuarioLogueado) return navegacion("/login");
-    const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
-    if (!idReserva) {
-      return Swal.fire(
-        "Error",
-        "No se encontró el ID de la reserva a pagar",
-        "error",
-      );
+  // const handleComprar = async () => {
+  //   if (!usuarioLogueado) return navegacion("/login");
+  //   const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
+  //   if (!idReserva) {
+  //     return Swal.fire(
+  //       "Error",
+  //       "No se encontró el ID de la reserva a pagar",
+  //       "error",
+  //     );
+  //   }
+  //   try {
+      
+  //     const data = await resp.json().catch(() => null);
+      
+  //     if (!resp.ok) {
+  //       const errorJson = await resp.json().catch(() => ({}));
+  //       throw new Error(
+  //         errorJson.mensaje || "Error al generar la preferencia de pago",
+  //       );
+  //     }
+
+  //     const data = await resp.json();
+  //     const redirectUrl = data.init_point || data.sandbox_init_point;
+
+  //     if (redirectUrl) {
+  //       window.location.href = redirectUrl;
+  //     } else {
+  //       Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error al procesar la compra:", error);
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "No se pudo iniciar el pago",
+  //     });
+  //   }
+  // };
+const handleComprar = async () => {
+  if (!usuarioLogueado) return navegacion("/login");
+
+  if (!turnoSeleccionado) {
+    return Swal.fire("Error", "Debes seleccionar un turno", "error");
+  }
+
+  try {
+    // 1. Primero creamos o registramos la reserva pendiente en la BD
+    // (Asegúrate de usar la función de tu API que crea reservas, por ejemplo crearReservaApi)
+    const respReserva = await crearReservaApi({
+      canchaId: turnoSeleccionado.canchaId || turnoSeleccionado.cancha,
+      fecha: turnoSeleccionado.fecha,
+      hora: turnoSeleccionado.hora,
+      precio: turnoSeleccionado.precio,
+    });
+
+    const dataReserva = await respReserva.json();
+    if (!respReserva.ok) {
+      throw new Error(dataReserva.mensaje || "Error al registrar la reserva previa");
     }
-    try {
-      const resp = await crearPreferenciaReservaApi(idReserva);
 
-      if (!resp.ok) {
-        const errorJson = await resp.json().catch(() => ({}));
-        throw new Error(
-          errorJson.mensaje || "Error al generar la preferencia de pago",
-        );
-      }
+    // Obtenemos el verdadero ObjectId generado por MongoDB
+    const idReservaCreada = dataReserva.reserva?._id || dataReserva._id;
 
-      const data = await resp.json();
-      const redirectUrl = data.init_point || data.sandbox_init_point;
+    // 2. Ahora sí generamos la preferencia con el ID real de la reserva
+    const respPago = await crearPreferenciaReservaApi(idReservaCreada);
+    const dataPago = await respPago.json();
 
-      if (redirectUrl) {
-        window.location.href = redirectUrl;
-      } else {
-        Swal.fire("Error", "No se obtuvo la URL de pago", "error");
-      }
-    } catch (error) {
-      console.error("Error al procesar la compra:", error);
-      Swal.fire({
-        icon: "error",
-        title: "No se pudo iniciar el pago",
-      });
+    if (!respPago.ok) {
+      throw new Error(dataPago.mensaje || "Error al generar la preferencia de pago");
     }
-  };
+
+    const redirectUrl = dataPago.init_point || dataPago.sandbox_init_point;
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    } else {
+      Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+    }
+  } catch (error: any) {
+    console.error("Error al procesar la compra:", error);
+    Swal.fire({
+      icon: "error",
+      title: "No se pudo iniciar el pago",
+      text: error.message,
+    });
+  }
+};
 
   const getEstilosTurno = (turno: any, isSelected: boolean) => {
     const base =

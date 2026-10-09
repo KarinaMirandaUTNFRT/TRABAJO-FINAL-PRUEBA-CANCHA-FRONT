@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import {
   agregarAlCarritoApi,
-  crearPreferenciaPagoApi,
+  crearPreferenciaReservaApi,
   eliminarProductoDelCarritoApi,
   obtenerCarritoApi,
   restarDelCarritoApi,
@@ -131,27 +131,103 @@ const Carrito = () => {
     }
   };
 
-  const handleComprar = async () => {
-    if (!usuarioLogueado) return navegacion("/login");
-    setLoading(true);
-    try {
-      const resp = await crearPreferenciaPagoApi();
-      if (!resp.ok) throw new Error("Error creando preferencia");
-      const data = await resp.json();
-      const redirectUrl = data.init_point || data.sandbox_init_point;
-      if (redirectUrl) {
-        window.location.href = redirectUrl;
-      } else {
-        console.error("Respuesta inválida de preferencia", data);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleComprar = async () => {
+  //   if (!usuarioLogueado) return navegacion("/login");
+  //   setLoading(true);
+  //   try {
+  //     const resp = await crearPreferenciaPagoApi();
+  //     if (!resp.ok) throw new Error("Error creando preferencia");
+  //     const data = await resp.json();
+  //     const redirectUrl = data.init_point || data.sandbox_init_point;
+  //     if (redirectUrl) {
+  //       window.location.href = redirectUrl;
+  //     } else {
+  //       console.error("Respuesta inválida de preferencia", data);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+// const handleComprar = async () => {
+//   if (!usuarioLogueado) return navegacion("/login");
 
-  if (!usuarioLogueado) {
+//   const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
+//   if (!idReserva) {
+//     return Swal.fire("Error", "No se encontró el ID de la reserva", "error");
+//   }
+
+//   try {
+//     const resp = await crearPreferenciaReservaApi(idReserva);
+
+//     // Parseamos la respuesta sea exitosa o de error
+//     const data = await resp.json().catch(() => null);
+
+//     if (!resp.ok) {
+//       // Muestra el mensaje exacto que devolvió el backend
+//       throw new Error(
+//         data?.mensaje || data?.message || data?.error || `Error HTTP ${resp.status}`
+//       );
+//     }
+
+//     const redirectUrl = data?.init_point || data?.sandbox_init_point;
+
+//     if (redirectUrl) {
+//       window.location.href = redirectUrl;
+//     } else {
+//       Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+//     }
+//   } catch (error) {
+//     console.error("Detalle del error:", error);
+//     Swal.fire({
+//       icon: "error",
+//       title: "No se pudo iniciar el pago",
+//       text: error.message, // <-- Muestra el motivo real en la alerta
+//     });
+//   }
+// };
+ const handleComprar = async () => {
+  if (!usuarioLogueado) return navegacion("/login");
+
+  if (!turnoSeleccionado) {
+    return Swal.fire("Error", "Debes seleccionar un turno", "error");
+  }
+
+  try {
+    // Enviamos el objeto del turno (asegúrate de que incluya canchaId, fecha, hora, precio)
+    const resp = await crearPreferenciaReservaApi({
+      canchaId: turnoSeleccionado.canchaId || turnoSeleccionado.cancha,
+      fecha: turnoSeleccionado.fecha,
+      hora: turnoSeleccionado.hora,
+      precio: turnoSeleccionado.precio,
+      // cualquier otro dato identificador que requiera tu modelo
+    });
+
+    const data = await resp.json().catch(() => null);
+
+    if (!resp.ok) {
+      throw new Error(data?.mensaje || "Error al generar la preferencia de pago");
+    }
+
+    const redirectUrl = data?.init_point || data?.sandbox_init_point;
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    } else {
+      Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+    }
+  } catch (error: any) {
+    console.error("Error al procesar la compra:", error);
+    Swal.fire({
+      icon: "error",
+      title: "No se pudo iniciar el pago",
+      text: error.message,
+    });
+  }
+};
+
+
+if (!usuarioLogueado) {
     return (
       <div className="max-w-3xl mx-auto">
         <p className="text-center text-zinc-300">

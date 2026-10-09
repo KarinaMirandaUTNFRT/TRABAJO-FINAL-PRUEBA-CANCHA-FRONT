@@ -424,16 +424,49 @@ export const obtenerCarritoApi = async () => {
 export const crearPreferenciaPagoApi = async () => {
   return await httpClient.post<any>(`${urlPagoProducto}/crear-preferencia`);
 };
-export const crearPreferenciaReservaApi = async (reservaId: any) => {
-  const usuario = JSON.parse(sessionStorage.getItem("usuarioLogueado") || "{}");
-  const token = usuario?.token;
+// export const crearPreferenciaReservaApi = async (reservaId: any) => {
+//   const storedUser =
+//     sessionStorage.getItem("usuario") ||
+//     localStorage.getItem("usuario") ||
+//     sessionStorage.getItem("usuarioLogueado");
+
+//   const usuario = storedUser ? JSON.parse(storedUser) : null;
+//   const token = usuario?.token;
+
+//   return await fetch(`${urlPagoCancha}/crear-preferencia`, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       "x-token": token || "",
+//       "Authorization": `Bearer ${token || ""}`,
+//     },
+//     credentials: "include",
+//     body: JSON.stringify({ reservaId }),
+//   });
+// };
+export const crearPreferenciaReservaApi = async (reservaId: string) => {
+  let token = localStorage.getItem("token");
+
+  if (!token) {
+    const rawUser = localStorage.getItem("usuarioLogueado");
+    if (rawUser) {
+      try {
+        const usuario = JSON.parse(rawUser);
+        token = usuario?.token;
+      } catch (err) {
+        console.error("Error parseando usuario:", err);
+      }
+    }
+  }
 
   return await fetch(`${urlPagoCancha}/crear-preferencia`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      "x-token": token || "",
+      "Authorization": `Bearer ${token || ""}`,
     },
-    body: JSON.stringify({ reservaId }),
+    credentials: "include",
+    body: JSON.stringify({ reservaId }), // Coincide con const { reservaId } = req.body
   });
 };
