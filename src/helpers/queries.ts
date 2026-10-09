@@ -425,7 +425,7 @@ export const crearPreferenciaPagoApi = async () => {
   return await httpClient.post<any>(`${urlPagoProducto}/crear-preferencia`);
 };
 
-export const crearPreferenciaReservaApi = async (datosTurno: string) => {
+export const crearPreferenciaReservaApi = async (datosTurno: any) => {
   let token = localStorage.getItem("token");
 
   if (!token) {
