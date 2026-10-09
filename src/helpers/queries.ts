@@ -424,27 +424,8 @@ export const obtenerCarritoApi = async () => {
 export const crearPreferenciaPagoApi = async () => {
   return await httpClient.post<any>(`${urlPagoProducto}/crear-preferencia`);
 };
-// export const crearPreferenciaReservaApi = async (reservaId: any) => {
-//   const storedUser =
-//     sessionStorage.getItem("usuario") ||
-//     localStorage.getItem("usuario") ||
-//     sessionStorage.getItem("usuarioLogueado");
 
-//   const usuario = storedUser ? JSON.parse(storedUser) : null;
-//   const token = usuario?.token;
-
-//   return await fetch(`${urlPagoCancha}/crear-preferencia`, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       "x-token": token || "",
-//       "Authorization": `Bearer ${token || ""}`,
-//     },
-//     credentials: "include",
-//     body: JSON.stringify({ reservaId }),
-//   });
-// };
-export const crearPreferenciaReservaApi = async (reservaId: string) => {
+export const crearPreferenciaReservaApi = async (datosTurno: string) => {
   let token = localStorage.getItem("token");
 
   if (!token) {
@@ -467,6 +448,7 @@ export const crearPreferenciaReservaApi = async (reservaId: string) => {
       "Authorization": `Bearer ${token || ""}`,
     },
     credentials: "include",
-    body: JSON.stringify({ reservaId }), // Coincide con const { reservaId } = req.body
+    body: JSON.stringify({ datosTurno }), 
+    // Envía canchaId, fecha, hora, etc.
   });
 };

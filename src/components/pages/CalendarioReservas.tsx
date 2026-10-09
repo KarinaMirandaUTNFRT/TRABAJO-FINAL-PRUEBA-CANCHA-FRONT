@@ -202,7 +202,7 @@ const handleComprar = async () => {
   try {
     // 1. Primero creamos o registramos la reserva pendiente en la BD
     // (Asegúrate de usar la función de tu API que crea reservas, por ejemplo crearReservaApi)
-    const respReserva = await crearReservaApi({
+    const respReserva = await crearPreferenciaReservaApi({
       canchaId: turnoSeleccionado.canchaId || turnoSeleccionado.cancha,
       fecha: turnoSeleccionado.fecha,
       hora: turnoSeleccionado.hora,
