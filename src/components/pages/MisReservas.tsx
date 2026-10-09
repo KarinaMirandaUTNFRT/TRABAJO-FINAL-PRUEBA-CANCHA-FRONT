@@ -20,7 +20,7 @@ const MisReservas = () => {
     const cargarReservas = async () => {
       try {
         setCargando(true);
-        const data = await obtenerMisReservasApi();
+        const data: Reserva[] = await obtenerMisReservasApi();
         setReservas(data);
       } catch (err: any) {
         console.error(err);
@@ -73,9 +73,13 @@ const MisReservas = () => {
             </div>
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-4 py-3 text-sm">
-              <span className="text-zinc-400 block text-xs">Usuario activo:</span>
+              <span className="text-zinc-400 block text-xs">
+                Usuario activo:
+              </span>
               <span className="font-semibold text-zinc-200">
-                {usuarioLogueado?.nombre || usuarioLogueado?.nombre || "Usuario"}
+                {usuarioLogueado?.nombre ||
+                  usuarioLogueado?.nombre ||
+                  "Usuario"}
               </span>
             </div>
           </div>
@@ -84,7 +88,9 @@ const MisReservas = () => {
         {/* Estado de Carga y Error */}
         {cargando && (
           <div className="flex justify-center py-16">
-            <p className="text-zinc-400 animate-pulse">Cargando tus reservas...</p>
+            <p className="text-zinc-400 animate-pulse">
+              Cargando tus reservas...
+            </p>
           </div>
         )}
 
@@ -99,7 +105,9 @@ const MisReservas = () => {
           <>
             {reservas.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 py-16 text-center">
-                <p className="text-lg text-zinc-400">Aún no tienes reservas registradas en RollingClub.</p>
+                <p className="text-lg text-zinc-400">
+                  Aún no tienes reservas registradas en RollingClub.
+                </p>
                 <Link
                   to="/reservas"
                   className="mt-4 inline-block rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500"
@@ -144,17 +152,23 @@ const MisReservas = () => {
                         <div className="flex justify-between">
                           <span className="text-zinc-400">Precio:</span>
                           <span className="font-semibold text-emerald-400">
-                            {(reserva.cancha?.precio || 0).toLocaleString("es-AR", {
-                              style: "currency",
-                              currency: "ARS",
-                            })}
+                            {(reserva.cancha?.precio || 0).toLocaleString(
+                              "es-AR",
+                              {
+                                style: "currency",
+                                currency: "ARS",
+                              },
+                            )}
                           </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="mt-5 border-t border-zinc-800/80 pt-3 text-xs text-zinc-500">
-                      ID Reserva: <span className="font-mono text-zinc-400">{reserva._id}</span>
+                      ID Reserva:{" "}
+                      <span className="font-mono text-zinc-400">
+                        {reserva._id}
+                      </span>
                     </div>
                   </article>
                 ))}
