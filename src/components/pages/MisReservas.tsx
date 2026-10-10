@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAppContext } from "../../context/AppContext";
-import { obtenerMisReservasApi } from "../../helpers/queries";
+import {
+  cancelarReservaApi,
+  obtenerMisReservasApi,
+} from "../../helpers/queries";
 import type { Reserva } from "../../interfaces/reserva";
+import Swal from "sweetalert2";
 
 const MisReservas = () => {
   const { usuarioLogueado } = useAppContext();
@@ -11,27 +15,111 @@ const MisReservas = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const cargarReservas = async () => {
+    try {
+      setCargando(true);
+      const data: Reserva[] = await obtenerMisReservasApi();
+      setReservas(data);
+    } catch (err: any) {
+      console.error(err);
+      setError("No se pudieron cargar tus reservas. Intenta nuevamente.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   useEffect(() => {
     if (!usuarioLogueado) {
       navigate("/login");
       return;
     }
 
-    const cargarReservas = async () => {
-      try {
-        setCargando(true);
-        const data: Reserva[] = await obtenerMisReservasApi();
-        setReservas(data);
-      } catch (err: any) {
-        console.error(err);
-        setError("No se pudieron cargar tus reservas. Intenta nuevamente.");
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargarReservas();
+    void cargarReservas();
   }, [usuarioLogueado, navigate]);
+
+  const handleCancelarReserva = async (reserva: Reserva) => {
+    const confirmacion = await Swal.fire({
+      title: "¿Deseas cancelar la reserva?",
+      text: `¿Estás seguro de cancelar la reserva de "${reserva.cancha?.nombreCancha || "Cancha"}" para el ${reserva.fechaInicio} a las ${reserva.horaInicio} hs?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#3f3f46",
+      confirmButtonText: "Sí, cancelar reserva",
+      cancelButtonText: "Volver",
+      background: "#18181b",
+      color: "#f4f4f5",
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    try {
+      const resp = await cancelarReservaApi(reserva._id);
+
+      if (resp.ok) {
+        await Swal.fire({
+          icon: "success",
+          title: "Reserva cancelada",
+          text: "Tu reserva ha sido cancelada exitosamente.",
+          confirmButtonColor: "#10b981",
+          background: "#18181b",
+          color: "#f4f4f5",
+        });
+        // Recargar la lista de reservas
+        void cargarReservas();
+      } else {
+        const errorData = await resp.json().catch(() => null);
+        throw new Error(errorData?.mensaje || "No se pudo cancelar la reserva");
+      }
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.message || "Ocurrió un error al procesar la cancelación.",
+        confirmButtonColor: "#ef4444",
+        background: "#18181b",
+        color: "#f4f4f5",
+      });
+    }
+  };
+
+  // Handler: Solicitar Reembolso
+  const handleSolicitarReembolso = async (reserva: Reserva) => {
+    const { value: motivo } = await Swal.fire({
+      title: "Solicitar Reembolso",
+      text: `Ingresa el motivo por el cual solicitas el reembolso de la cancha ${reserva.cancha?.nombreCancha || ""}:`,
+      input: "textarea",
+      inputPlaceholder: "Escribe aquí el motivo de tu solicitud...",
+      inputAttributes: {
+        "aria-label": "Motivo del reembolso",
+      },
+      showCancelButton: true,
+      confirmButtonColor: "#0284c7",
+      cancelButtonColor: "#3f3f46",
+      confirmButtonText: "Enviar Solicitud",
+      cancelButtonText: "Cancelar",
+      background: "#18181b",
+      color: "#f4f4f5",
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return "Por favor ingresa un motivo para continuar";
+        }
+      },
+    });
+
+    if (motivo) {
+      // Aquí puedes conectar el endpoint de soporte o reembolso cuando lo tengas listo
+      Swal.fire({
+        icon: "success",
+        title: "Solicitud enviada",
+        text: "Tu solicitud de reembolso fue recibida por la administración de RollingClub. Nos pondremos en contacto a la brevedad.",
+        confirmButtonColor: "#10b981",
+        background: "#18181b",
+        color: "#f4f4f5",
+      });
+    }
+  };
 
   // Formato de badge según el estado de la reserva
   const renderBadgeEstado = (estado: string) => {
@@ -117,61 +205,83 @@ const MisReservas = () => {
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {reservas.map((reserva) => (
-                  <article
-                    key={reserva._id}
-                    className="flex flex-col justify-between overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-lg transition hover:border-zinc-700"
-                  >
-                    <div>
-                      {/* Estado y Cancha */}
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
-                          Cancha
-                        </span>
-                        {renderBadgeEstado(reserva.estado)}
+                {reservas.map((reserva) => {
+                  const yaCancelada =
+                    reserva.estado?.toLowerCase() === "cancelada";
+
+                  return (
+                    <article
+                      key={reserva._id}
+                      className="flex flex-col justify-between overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-lg transition hover:border-zinc-700"
+                    >
+                      <div>
+                        {/* Estado y Cancha */}
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                            Cancha
+                          </span>
+                          {renderBadgeEstado(reserva.estado)}
+                        </div>
+
+                        <h2 className="text-xl font-bold text-zinc-100">
+                          {reserva.cancha?.nombreCancha || "Cancha RollingClub"}
+                        </h2>
+
+                        {/* Detalles: Fecha y Hora */}
+                        <div className="mt-4 space-y-2 border-t border-zinc-800/80 pt-3 text-sm text-zinc-300">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-400">Fecha:</span>
+                            <span className="font-medium text-zinc-200">
+                              {(reserva as any).fechaJornada ||
+                                reserva.fechaInicio ||
+                                "No especificada"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-400">Horario:</span>
+                            <span className="font-medium text-zinc-200">
+                              {reserva.horaInicio} hs
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-400">Precio:</span>
+                            <span className="font-semibold text-emerald-400">
+                              {(reserva.cancha?.precio || 0).toLocaleString(
+                                "es-AR",
+                                {
+                                  style: "currency",
+                                  currency: "ARS",
+                                },
+                              )}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      <h2 className="text-xl font-bold text-zinc-100">
-                        {reserva.cancha?.nombreCancha || "Cancha RollingClub"}
-                      </h2>
+                      {/* Botones de Acción */}
+                      <div className="mt-5 flex flex-col gap-2 border-t border-zinc-800/80 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => void handleCancelarReserva(reserva)}
+                          disabled={yaCancelada}
+                          className="w-full rounded-lg bg-rose-600/15 py-2 text-xs font-semibold text-rose-400 border border-rose-500/20 transition hover:bg-rose-600 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {yaCancelada
+                            ? "Reserva Cancelada"
+                            : "Cancelar Reserva"}
+                        </button>
 
-                      {/* Detalles: Fecha y Hora */}
-                      <div className="mt-4 space-y-2 border-t border-zinc-800/80 pt-3 text-sm text-zinc-300">
-                        <div className="flex justify-between">
-                          <span className="text-zinc-400">Fecha:</span>
-                          <span className="font-medium text-zinc-200">
-                            {reserva.fechaInicio}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-400">Horario:</span>
-                          <span className="font-medium text-zinc-200">
-                            {reserva.horaInicio} hs
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-400">Precio:</span>
-                          <span className="font-semibold text-emerald-400">
-                            {(reserva.cancha?.precio || 0).toLocaleString(
-                              "es-AR",
-                              {
-                                style: "currency",
-                                currency: "ARS",
-                              },
-                            )}
-                          </span>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void handleSolicitarReembolso(reserva)}
+                          className="w-full rounded-lg bg-sky-600/15 py-2 text-xs font-semibold text-sky-400 border border-sky-500/20 transition hover:bg-sky-600 hover:text-white"
+                        >
+                          Solicitar Reembolso
+                        </button>
                       </div>
-                    </div>
-
-                    <div className="mt-5 border-t border-zinc-800/80 pt-3 text-xs text-zinc-500">
-                      ID Reserva:{" "}
-                      <span className="font-mono text-zinc-400">
-                        {reserva._id}
-                      </span>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </div>
             )}
           </>

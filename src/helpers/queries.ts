@@ -459,7 +459,7 @@ export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
     }
   }
 
-  const resp = await fetch(`${urlPagoCancha}/mis-reservas`, { // Ajusta la ruta a tu endpoint
+  const resp = await fetch(urlMisReservas, { // Ajusta la ruta a tu endpoint
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -472,7 +472,36 @@ export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
   if (!resp.ok) {
     throw new Error("Error al obtener las reservas");
   }
-const data: Reserva[] = await resp.json();
-  return data;
+return await resp.json();
   
+};
+export const cancelarReservaApi = async (id: string) => {
+  let token = localStorage.getItem("token");
+
+  if (!token) {
+    const rawUser = localStorage.getItem("usuarioLogueado");
+    if (rawUser) {
+      try {
+        const usuario = JSON.parse(rawUser);
+        token = usuario?.token;
+      } catch (err) {
+        console.error("Error parseando usuario:", err);
+      }
+    }
+  }
+
+  const urlBase =
+    import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
+
+  const resp = await fetch(`${urlBase}/reservas/${id}/cancelar`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "x-token": token || "",
+      "Authorization": `Bearer ${token || ""}`,
+    },
+    credentials: "include",
+  });
+
+  return resp;
 };
