@@ -206,17 +206,29 @@ const handleComprar = async () => {
   }
 
   try {
-    const idCancha = turnoSeleccionado.canchaId || turnoSeleccionado.cancha;
-    const hora = turnoSeleccionado.hora || turnoSeleccionado.horaInicio;
-    const fecha = turnoSeleccionado.fecha || turnoSeleccionado.fechaJornada;
+    const hora = turnoSeleccionado.horaInicio;
 
-    // PASO 1: Guardar la reserva enviando exactamente lo que el backend exige
+    // Obtenemos la cancha: si turnoSeleccionado ya tiene canchaId/cancha, se usa;
+    // de lo contrario, se toma la primera cancha del estado o la que corresponda
+    const idCancha =
+      turnoSeleccionado.canchaId ||
+      turnoSeleccionado.cancha ||
+      (Array.isArray(canchas) && canchas[0]?._id);
+
+    // Formatear la fecha seleccionada en formato YYYY-MM-DD si es un objeto Date
+    const fechaAEnviar =
+      fechaSeleccionada instanceof Date
+        ? fechaSeleccionada.toISOString().split("T")[0]
+        : String(fechaSeleccionada);
+
+    // PASO 1: Crear la reserva en MongoDB con cancha, fecha y turnos
     const respNuevaReserva = await crearReservaApi({
       canchaId: idCancha,
       cancha: idCancha,
-      fecha: fecha,
-      fechaJornada: fecha,
-      turnos: [hora], // El backend espera un arreglo con los turnos/horarios
+      fecha: fechaAEnviar,
+      fechaJornada: fechaAEnviar,
+      turnos: [hora],
+      turno: hora,
       horaInicio: hora,
     } as any);
 
@@ -226,8 +238,6 @@ const handleComprar = async () => {
     }
 
     const reservaCreada = await respNuevaReserva.json();
-
-    // El backend puede devolver el ID directamente o dentro de un objeto/array
     const idReserva =
       reservaCreada._id ||
       reservaCreada.reserva?._id ||
@@ -237,7 +247,7 @@ const handleComprar = async () => {
       throw new Error("No se pudo obtener el identificador de la reserva creada");
     }
 
-    // PASO 2: Generar la preferencia de Mercado Pago usando el ID obtenido
+    // PASO 2: Generar la orden en Mercado Pago con el ID recién creado
     const respPreferencia = await crearPreferenciaReservaApi(idReserva);
     const dataPreferencia = await respPreferencia.json();
 
