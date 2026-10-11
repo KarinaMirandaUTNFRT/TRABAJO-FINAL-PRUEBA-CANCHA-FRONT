@@ -416,23 +416,27 @@ export const obtenerCarritoApi = async () => {
 export const crearPreferenciaPagoApi = async () => {
   return await httpClient.post<any>(`${urlPagoProducto}/crear-preferencia`);
 };
-
-export const crearPreferenciaReservaApi = async (datosTurno: any) => {
+// 1. Crear la reserva en MongoDB
+export const crearReservaApi = async (datosReserva: {
+  cancha: string;
+  fechaJornada: string;
+  horaInicio: string;
+}) => {
   let token = localStorage.getItem("token");
-
   if (!token) {
     const rawUser = localStorage.getItem("usuarioLogueado");
     if (rawUser) {
       try {
-        const usuario = JSON.parse(rawUser);
-        token = usuario?.token;
+        token = JSON.parse(rawUser)?.token;
       } catch (err) {
-        console.error("Error parseando usuario:", err);
+        console.error(err);
       }
     }
   }
 
-  return await fetch(`${urlPagoCancha}/crear-preferencia`, {
+  const urlBase = import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
+
+  const resp = await fetch(`${urlBase}/reservas`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -440,10 +444,40 @@ export const crearPreferenciaReservaApi = async (datosTurno: any) => {
       "Authorization": `Bearer ${token || ""}`,
     },
     credentials: "include",
-    body: JSON.stringify({ datosTurno }), 
-    // Envía canchaId, fecha, hora, etc.
+    body: JSON.stringify(datosReserva),
   });
+
+  return resp;
 };
+
+// 2. Crear la preferencia en Mercado Pago con el ID de la reserva
+export const crearPreferenciaReservaApi = async (reservaId: string) => {
+  let token = localStorage.getItem("token");
+  if (!token) {
+    const rawUser = localStorage.getItem("usuarioLogueado");
+    if (rawUser) {
+      try {
+        token = JSON.parse(rawUser)?.token;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  const resp = await fetch(`${urlPagoCancha}/pagoCancha/crear-preferencia`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-token": token || "",
+      "Authorization": `Bearer ${token || ""}`,
+    },
+    credentials: "include",
+    body: JSON.stringify({ reservaId }), // Envía la clave que espera el backend
+  });
+
+  return resp;
+};
+
 export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
   let token = localStorage.getItem("token");
 
