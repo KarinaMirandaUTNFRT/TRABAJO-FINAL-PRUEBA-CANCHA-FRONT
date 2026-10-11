@@ -195,53 +195,71 @@ export default function CalendarioReservas() {
   // };
 const handleComprar = async () => {
   if (!usuarioLogueado) {
-  Swal.fire({
-    icon: "info",
-    title: "Inicia sesión",
-    text: "Debes iniciar sesión para reservar una cancha",
-  });
-  return;
-}
+    Swal.fire({
+      icon: "info",
+      title: "Inicia sesión",
+      text: "Debes iniciar sesión para reservar una cancha",
+      background: "#18181b",
+      color: "#f4f4f5",
+    });
+    return;
+  }
+
   try {
-  // PASO 1: Guardar la reserva en la base de datos
-  const respNuevaReserva = await crearReservaApi({
-    cancha: turnoSeleccionado.canchaId || turnoSeleccionado.cancha,
-    fechaJornada: turnoSeleccionado.fecha,
-    horaInicio: turnoSeleccionado.hora,
-  });
+    const idCancha = turnoSeleccionado.canchaId || turnoSeleccionado.cancha;
+    const hora = turnoSeleccionado.hora || turnoSeleccionado.horaInicio;
+    const fecha = turnoSeleccionado.fecha || turnoSeleccionado.fechaJornada;
 
-  if (!respNuevaReserva.ok) {
-    const errData = await respNuevaReserva.json().catch(() => null);
-    throw new Error(errData?.mensaje || "No se pudo registrar la reserva");
+    // PASO 1: Guardar la reserva enviando exactamente lo que el backend exige
+    const respNuevaReserva = await crearReservaApi({
+      canchaId: idCancha,
+      cancha: idCancha,
+      fecha: fecha,
+      fechaJornada: fecha,
+      turnos: [hora], // El backend espera un arreglo con los turnos/horarios
+      horaInicio: hora,
+    } as any);
+
+    if (!respNuevaReserva.ok) {
+      const errData = await respNuevaReserva.json().catch(() => null);
+      throw new Error(errData?.mensaje || "No se pudo registrar la reserva");
+    }
+
+    const reservaCreada = await respNuevaReserva.json();
+
+    // El backend puede devolver el ID directamente o dentro de un objeto/array
+    const idReserva =
+      reservaCreada._id ||
+      reservaCreada.reserva?._id ||
+      (Array.isArray(reservaCreada.reservas) && reservaCreada.reservas[0]?._id);
+
+    if (!idReserva) {
+      throw new Error("No se pudo obtener el identificador de la reserva creada");
+    }
+
+    // PASO 2: Generar la preferencia de Mercado Pago usando el ID obtenido
+    const respPreferencia = await crearPreferenciaReservaApi(idReserva);
+    const dataPreferencia = await respPreferencia.json();
+
+    if (!respPreferencia.ok) {
+      throw new Error(dataPreferencia.mensaje || "Error al generar la orden de pago");
+    }
+
+    // PASO 3: Redirigir a Mercado Pago
+    if (dataPreferencia.init_point) {
+      window.location.href = dataPreferencia.init_point;
+    }
+  } catch (error: any) {
+    console.error("Error en el proceso de reserva y pago:", error);
+    Swal.fire({
+      icon: "error",
+      title: "No se pudo iniciar el pago",
+      text: error.message || "Ocurrió un error inesperado al procesar la reserva",
+      confirmButtonColor: "#ef4444",
+      background: "#18181b",
+      color: "#f4f4f5",
+    });
   }
-
-  const reservaCreada = await respNuevaReserva.json();
-  // Obtenemos el ID de la reserva (según si tu backend devuelve el objeto directo o { reserva: ... })
-  const idReserva = reservaCreada._id || reservaCreada.reserva?._id;
-
-  // PASO 2: Generar la preferencia de Mercado Pago usando el ID obtenido
-  const respPreferencia = await crearPreferenciaReservaApi(idReserva);
-  const dataPreferencia = await respPreferencia.json();
-
-  if (!respPreferencia.ok) {
-    throw new Error(dataPreferencia.mensaje || "Error al generar la orden de pago");
-  }
-
-  // PASO 3: Redirigir a Mercado Pago
-  if (dataPreferencia.init_point) {
-    window.location.href = dataPreferencia.init_point;
-  }
-} catch (error: any) {
-  console.error("Error en el proceso de reserva y pago:", error);
-  Swal.fire({
-    icon: "error",
-    title: "No se pudo iniciar el pago",
-    text: error.message || "Ocurrió un error inesperado al procesar la reserva",
-    confirmButtonColor: "#ef4444",
-    background: "#18181b",
-    color: "#f4f4f5",
-  });
-}
 };
   const getEstilosTurno = (turno: any, isSelected: boolean) => {
     const base =

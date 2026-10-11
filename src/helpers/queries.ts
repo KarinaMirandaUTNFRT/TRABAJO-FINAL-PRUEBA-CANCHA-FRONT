@@ -418,9 +418,13 @@ export const crearPreferenciaPagoApi = async () => {
 };
 // 1. Crear la reserva en MongoDB
 export const crearReservaApi = async (datosReserva: {
-  cancha: string;
-  fechaJornada: string;
-  horaInicio: string;
+  canchaId?: string;
+  cancha?: string;
+  fecha?: string;
+  fechaJornada?: string;
+  turnos?: string[];
+  horaInicio?: string;
+  [key: string]: any;
 }) => {
   let token = localStorage.getItem("token");
   if (!token) {
