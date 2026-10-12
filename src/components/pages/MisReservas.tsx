@@ -146,27 +146,29 @@ const MisReservas = () => {
     );
   };
   const handlePagarPendiente = async (reservaId: string) => {
-  try {
-    const resp = await crearPreferenciaReservaApi(reservaId);
-    const data = await resp.json();
+    try {
+      const resp = await crearPreferenciaReservaApi(reservaId);
+      const data = await resp.json();
 
-    if (!resp.ok) {
-      throw new Error(data.mensaje || "Error al generar la preferencia de pago");
+      if (!resp.ok) {
+        throw new Error(
+          data.mensaje || "Error al generar la preferencia de pago",
+        );
+      }
+
+      // Mercado Pago devuelve init_point (o sandbox_init_point en modo prueba)
+      const urlPago = data.init_point || data.sandbox_init_point || data.url;
+
+      if (urlPago) {
+        window.location.href = urlPago; // Redirige al usuario al checkout de Mercado Pago
+      } else {
+        console.error("No se encontró la URL de pago en la respuesta:", data);
+      }
+    } catch (error: any) {
+      console.error("Error al reintentar pago:", error);
+      alert(error.message || "No se pudo iniciar el pago");
     }
-
-    // Mercado Pago devuelve init_point (o sandbox_init_point en modo prueba)
-    const urlPago = data.init_point || data.sandbox_init_point || data.url;
-
-    if (urlPago) {
-      window.location.href = urlPago; // Redirige al usuario al checkout de Mercado Pago
-    } else {
-      console.error("No se encontró la URL de pago en la respuesta:", data);
-    }
-  } catch (error: any) {
-    console.error("Error al reintentar pago:", error);
-    alert(error.message || "No se pudo iniciar el pago");
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 px-4 py-8 text-zinc-100 sm:px-6 lg:px-8">
@@ -283,13 +285,16 @@ const MisReservas = () => {
 
                       {/* Botones de Acción */}
                       <div className="mt-5 flex flex-col gap-2 border-t border-zinc-800/80 pt-4">
-                        <button
-                          className="btn btn-success w-100 fw-bold "
-                          onClick={() => handlePagarPendiente(reserva._id)}
-                        >
-                          💳 Pagar Reserva
-                        </button>
                         
+                          <button
+                            type="button"
+                            className="w-full rounded-lg bg-blue-200-600/15 py-2 text-xs font-semibold text-blue-200-400 border border-rose-500/20 transition hover:bg-cyan-500-600 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                            onClick={() => void handlePagarPendiente(reserva._id)}
+                          >
+                            💳 <span>Pagar Reserva</span>
+                          </button>
+                        
+
                         <button
                           type="button"
                           onClick={() => void handleCancelarReserva(reserva)}
@@ -308,7 +313,6 @@ const MisReservas = () => {
                         >
                           Solicitar Reembolso
                         </button>
-                        
                       </div>
                     </article>
                   );
