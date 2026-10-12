@@ -26,7 +26,7 @@ const fetchRequest = async <T>(endpoint: string, options: RequestOptions = {}): 
       token = sessionStorage.getItem("token");
       
       const usuarioStorage = sessionStorage.getItem("usuarioLogueado");
-      console.log("CONTENIDO BRUTO DE usuarioLogueado:", usuarioStorage); // <-- MIRA ESTO EN LA CONSOLA
+      //console.log("CONTENIDO BRUTO DE usuarioLogueado:", usuarioStorage); // <-- MIRA ESTO EN LA CONSOLA
 
       if (usuarioStorage) {
         const parsedUser = JSON.parse(usuarioStorage);

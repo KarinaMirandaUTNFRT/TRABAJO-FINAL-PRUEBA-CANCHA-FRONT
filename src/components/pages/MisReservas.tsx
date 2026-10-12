@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { useAppContext } from "../../context/AppContext";
 import {
   cancelarReservaApi,
+  crearPreferenciaReservaApi,
   obtenerMisReservasApi,
 } from "../../helpers/queries";
 import type { Reserva } from "../../interfaces/reserva";
@@ -144,6 +145,28 @@ const MisReservas = () => {
       </span>
     );
   };
+  const handlePagarPendiente = async (reservaId: string) => {
+  try {
+    const resp = await crearPreferenciaReservaApi(reservaId);
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      throw new Error(data.mensaje || "Error al generar la preferencia de pago");
+    }
+
+    // Mercado Pago devuelve init_point (o sandbox_init_point en modo prueba)
+    const urlPago = data.init_point || data.sandbox_init_point || data.url;
+
+    if (urlPago) {
+      window.location.href = urlPago; // Redirige al usuario al checkout de Mercado Pago
+    } else {
+      console.error("No se encontró la URL de pago en la respuesta:", data);
+    }
+  } catch (error: any) {
+    console.error("Error al reintentar pago:", error);
+    alert(error.message || "No se pudo iniciar el pago");
+  }
+};
 
   return (
     <div className="min-h-screen bg-zinc-950 px-4 py-8 text-zinc-100 sm:px-6 lg:px-8">
@@ -261,6 +284,13 @@ const MisReservas = () => {
                       {/* Botones de Acción */}
                       <div className="mt-5 flex flex-col gap-2 border-t border-zinc-800/80 pt-4">
                         <button
+                          className="btn btn-success w-100 fw-bold "
+                          onClick={() => handlePagarPendiente(reserva._id)}
+                        >
+                          💳 Pagar Reserva
+                        </button>
+                        
+                        <button
                           type="button"
                           onClick={() => void handleCancelarReserva(reserva)}
                           disabled={yaCancelada}
@@ -278,6 +308,7 @@ const MisReservas = () => {
                         >
                           Solicitar Reembolso
                         </button>
+                        
                       </div>
                     </article>
                   );

@@ -412,49 +412,11 @@ export const obtenerCantidadCarritoApi = async (): Promise<number> => {
 export const obtenerCarritoApi = async () => {
   return await httpClient.get<ICarrito>("/carrito");
 };
-
+//para el carrto de productos
 export const crearPreferenciaPagoApi = async () => {
   return await httpClient.post<any>(`${urlPagoProducto}/crear-preferencia`);
 };
-// 1. Crear la reserva en MongoDB
-export const crearReservaApi = async (datosReserva: {
-  canchaId?: string;
-  cancha?: string;
-  fecha?: string;
-  fechaJornada?: string;
-  turnos?: string[];
-  horaInicio?: string;
-  [key: string]: any;
-}) => {
-  let token = localStorage.getItem("token");
-  if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
-    if (rawUser) {
-      try {
-        token = JSON.parse(rawUser)?.token;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
-
-  const urlBase = import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
-
-  const resp = await fetch(`${urlBase}/reservas`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
-    },
-    credentials: "include",
-    body: JSON.stringify(datosReserva),
-  });
-
-  return resp;
-};
-
-// 2. Crear la preferencia en Mercado Pago con el ID de la reserva
+// para el pago de canchas
 export const crearPreferenciaReservaApi = async (reservaId: string) => {
   let token = localStorage.getItem("token");
   if (!token) {
@@ -468,7 +430,8 @@ export const crearPreferenciaReservaApi = async (reservaId: string) => {
     }
   }
 
-  const resp = await fetch(`${urlPagoCancha}/pagoCancha/crear-preferencia`, {
+  const resp = await fetch(`${urlPagoCancha}/crear-preferencia`, 
+     {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -539,6 +502,43 @@ export const cancelarReservaApi = async (id: string) => {
       "Authorization": `Bearer ${token || ""}`,
     },
     credentials: "include",
+  });
+
+  return resp;
+};
+// 1. Crear la reserva en MongoDB
+export const crearReservaApi = async (datosReserva: {
+  canchaId?: string;
+  cancha?: string;
+  fecha?: string;
+  fechaJornada?: string;
+  turnos?: string[];
+  horaInicio?: string;
+  [key: string]: any;
+}) => {
+  let token = localStorage.getItem("token");
+  if (!token) {
+    const rawUser = localStorage.getItem("usuarioLogueado");
+    if (rawUser) {
+      try {
+        token = JSON.parse(rawUser)?.token;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  const urlBase = import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
+
+  const resp = await fetch(`${urlBase}/reservas`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-token": token || "",
+      "Authorization": `Bearer ${token || ""}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(datosReserva),
   });
 
   return resp;
