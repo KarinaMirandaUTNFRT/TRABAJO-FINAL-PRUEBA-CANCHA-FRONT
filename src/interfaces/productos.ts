@@ -4,13 +4,12 @@ export interface CategoriaProducto{
    descripcion: string;
 }
 
-
 export interface Producto {
   _id: string;
   nombreProducto: string;
   precio: number;
   imagen: string;
-  categoria: CategoriaProducto | string;
+  categoria: CategoriaProducto ;
   descripcion: string;
 }
 

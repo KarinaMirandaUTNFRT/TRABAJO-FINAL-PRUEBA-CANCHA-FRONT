@@ -1,7 +1,5 @@
-import React from "react";
 import { useForm } from "react-hook-form";
-import { FaWhatsapp } from "react-icons/fa";
-import { FaInstagram } from "react-icons/fa";
+import { FaWhatsapp, FaInstagram } from "react-icons/fa";
 
 const Contacto = () => {
   const {
@@ -11,31 +9,28 @@ const Contacto = () => {
     formState: { errors, isSubmitting },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log("Datos enviados:", data);
-    // Acá podés conectar la llamada a tu API / backend en Node
+  const onSubmit = () => {
     alert("¡Mensaje enviado con éxito!");
     reset();
   };
 
   return (
-    <section className="bg-slate-900 border border-slate-900 rounded-2xl text-white py-12 px-4 flex flex-col items-center justify-center">
+    <section
+      id="contacto"
+      className="bg-slate-900 border border-slate-900 rounded-2xl text-white py-12 px-4 flex flex-col items-center justify-center"
+    >
       <div className="max-w-2xl w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-10 shadow-xl">
-        {/* Título de la sección */}
         <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-green-500 mb-2 tracking-tight">
           Contáctanos
         </h2>
         <p className="text-center text-slate-500 text-sm sm:text-base mb-8">
           Déjanos tu consulta o mándanos mensaje en nuestras redes abajo
         </p>
-
-        {/* Formulario con React Hook Form */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-5"
           noValidate
         >
-          {/* Nombre y Apellido */}
           <div>
             <input
               type="text"
@@ -46,13 +41,9 @@ const Contacto = () => {
               })}
             />
             {errors.fullName && (
-              <span className="text-red-400 text-xs mt-1 block">
-                {errors.fullName.message}
-              </span>
+              <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
-          {/* Email */}
           <div>
             <input
               type="email"
@@ -67,13 +58,9 @@ const Contacto = () => {
               })}
             />
             {errors.email && (
-              <span className="text-red-400 text-xs mt-1 block">
-                {errors.email.message}
-              </span>
+              <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
-          {/* Número de Celular */}
           <div>
             <input
               type="tel"
@@ -88,16 +75,11 @@ const Contacto = () => {
               })}
             />
             {errors.phone && (
-              <span className="text-red-400 text-xs mt-1 block">
-                {errors.phone.message}
-              </span>
+              <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
-          {/* Mensaje */}
           <div>
             <textarea
-              rows="4"
               placeholder="Escribe detalladamente aquí..."
               className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-[#22C55E] transition-colors resize-none"
               {...register("message", {
@@ -109,13 +91,9 @@ const Contacto = () => {
               })}
             ></textarea>
             {errors.message && (
-              <span className="text-red-400 text-xs mt-1 block">
-                {errors.message.message}
-              </span>
+              <span className="text-red-400 text-xs mt-1 block"></span>
             )}
           </div>
-
-          {/* Botón de Envío */}
           <button
             type="submit"
             disabled={isSubmitting}
@@ -124,8 +102,6 @@ const Contacto = () => {
             {isSubmitting ? "Enviando..." : "Enviar"}
           </button>
         </form>
-
-        {/* Enlaces a Redes Sociales */}
         <div className="flex justify-center items-center gap-8 mt-10 pt-6 border-t border-slate-700/60">
           <a
             href="https://instagram.com"

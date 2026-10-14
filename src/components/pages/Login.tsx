@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { useAppContext } from "../../context/AppContext";
 import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
+import { httpClient } from "../../helpers/httpClient";
 
 interface LoginFormInputs {
   email: string;
@@ -9,42 +10,63 @@ interface LoginFormInputs {
 }
 
 const Login = () => {
-   const {setUsuarioLogueado} = useAppContext()
+  const { setUsuarioLogueado } = useAppContext();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormInputs>();
-  const navegacion = useNavigate()
+  const navegacion = useNavigate();
 
-  const onSubmit = (data: LoginFormInputs) => {
-    console.log(data);
-  if (
-      data.email === import.meta.env.VITE_EMAIL &&
-      data.password === import.meta.env.VITE_PASSWORD
-    ) {
-      setUsuarioLogueado(true);
-      Swal.fire({
-        title: "Bienvenido Administrador",
-        text: "Ingresando al sistema",
-        icon: "success",
-        background: "#18181b",
-        color: "#f4f4f5",
-        confirmButtonColor: "#3b82f6",
-      });
-      //redirecciono al admin
-      navegacion('/administrador');
-    } else {
+  const onSubmit = async (data: LoginFormInputs) => {
+    try {
+       const resultado: any = await httpClient.post("/usuarios/login", data);
+
+      if (resultado) {
+        const datosSesion = {
+          _id: resultado.id || resultado._id,
+          email: resultado.email,
+          nombre: resultado.nombre,
+          rol: resultado.rol,
+          token: resultado.token || resultado.jwt, // Aseguramos guardar el token en la sesión
+        };
+
+        sessionStorage.setItem("usuarioLogueado", JSON.stringify(datosSesion));
+        setUsuarioLogueado(datosSesion);
+
+        if (resultado.rol?.toLowerCase() === "admin") {
+          Swal.fire({
+            title: `Bienvenido Administrador`,
+            text: `Hola ${resultado.nombre}, ingresando al panel de control`,
+            icon: "success",
+            background: "#18181b",
+            color: "#f4f4f5",
+            confirmButtonColor: "#3b82f6",
+          });
+          navegacion("/administrador");
+        } else {
+          Swal.fire({
+            title: `Bienvenido/a`,
+            text: `Hola ${resultado.nombre}, ingresando al sistema`,
+            icon: "success",
+            background: "#18181b",
+            color: "#f4f4f5",
+            confirmButtonColor: "#3b82f6",
+          });
+          navegacion("/");
+        }
+      }
+    } catch (error: any) {
+      console.error(error);
       Swal.fire({
         title: "Ocurrió un error",
-        text: "Credenciales incorrectas",
+        text: error?.message || "Credenciales incorrectas o error de conexión",
         icon: "error",
         background: "#18181b",
         color: "#f4f4f5",
         confirmButtonColor: "#ef4444",
       });
     }
-   
   };
 
   return (
@@ -55,14 +77,13 @@ const Login = () => {
             Iniciar Sesión
           </h2>
           <p className="mt-2 text-center text-sm text-zinc-400">
-            Accede al panel de {" "}
+            Accede al panel de{" "}
             <span className="text-green-500 font-semibold">RollingClub</span>
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
-            {/* Email Field */}
             <div>
               <label
                 htmlFor="email"
@@ -79,8 +100,7 @@ const Login = () => {
                 {...register("email", {
                   required: "El email es obligatorio",
                   pattern: {
-                    value:
-                      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/,
+                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
                     message: "Email no válido",
                   },
                 })}
@@ -91,8 +111,6 @@ const Login = () => {
                 </p>
               )}
             </div>
-
-            {/* Password Field */}
             <div>
               <label
                 htmlFor="password"
@@ -108,12 +126,6 @@ const Login = () => {
                 placeholder="••••••••"
                 {...register("password", {
                   required: "La contraseña es obligatoria",
-                  pattern: {
-                    value:
-                      /^(?=.*\d)(?=.*[\u0021-\u002b\u003c-\u0040])(?=.*[A-Z])(?=.*[a-z])\S{8,16}$/,
-                    message:
-                      "Debe tener 8-16 caracteres, mayúscula, minúscula, número y símbolo.",
-                  },
                 })}
               />
               {errors.password && (
@@ -131,15 +143,15 @@ const Login = () => {
             >
               Ingresar al sistema
             </button>
-            </div>
-            <p className="text-center text-sm text-[#64748B] mt-6">
-          ¿No tienes cuenta?{" "}
-          <a
-            href="/registrate"
-            className="text-green-500 hover:text-green-600 font-semibold"
-          >
-            Click Aqui
-          </a>
+          </div>
+          <p className="text-center text-sm text-[#64748B] mt-6">
+            ¿No tienes cuenta?{" "}
+            <a
+              href="/registrate"
+              className="text-green-500 hover:text-green-600 font-semibold"
+            >
+              Click Aqui
+            </a>
           </p>
         </form>
       </div>

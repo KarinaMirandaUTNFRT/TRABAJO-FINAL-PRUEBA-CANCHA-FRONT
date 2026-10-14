@@ -1,0 +1,329 @@
+import { useEffect, useState } from "react";
+import { useAppContext } from "../../context/AppContext";
+import {
+  agregarAlCarritoApi,
+  crearPreferenciaPagoApi,
+  eliminarProductoDelCarritoApi,
+  obtenerCarritoApi,
+  restarDelCarritoApi,
+} from "../../helpers/queries";
+import { Link, useNavigate } from "react-router";
+import Swal from "sweetalert2";
+import type { CarritoItem, ICarrito } from "../../interfaces/carrito";
+
+const Carrito = () => {
+  const { usuarioLogueado, refreshCarritoCount } = useAppContext();
+  const [carrito, setCarrito] = useState<ICarrito | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [updatingItem, setUpdatingItem] = useState<string | null>(null);
+  const navegacion = useNavigate();
+
+  const fetchCarrito = async () => {
+    try {
+      const data = await obtenerCarritoApi();
+      setCarrito(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (usuarioLogueado) {
+      void fetchCarrito();
+    } else {
+      setCarrito(null);
+    }
+  }, [usuarioLogueado]);
+
+  const calcularTotal = () => {
+    if (!carrito || !Array.isArray(carrito.items)) return 0;
+    return carrito.items.reduce(
+      (acc: number, it: CarritoItem) =>
+        acc + Number(it.producto?.precio || 0) * Number(it.cantidad || 0),
+      0,
+    );
+  };
+
+  const actualizarCantidad = async (item: CarritoItem, nuevaCantidad: number) => {
+    const cantidadActual = Number(item.cantidad) || 0;
+    const cantidadSolicitada = Math.max(1, Math.floor(nuevaCantidad));
+    const diferencia = cantidadSolicitada - cantidadActual;
+    const productoId = String(item.producto?._id || item.producto._id);
+
+    if (!productoId || diferencia === 0) return;
+
+    setUpdatingItem(String(item._id));
+    try {
+      if (diferencia > 0) {
+        await agregarAlCarritoApi(productoId, diferencia);
+       
+      } else {
+        for (let index = 0; index < Math.abs(diferencia); index += 1) {
+          await restarDelCarritoApi(productoId);
+          
+        }
+      }
+      await fetchCarrito();
+      await refreshCarritoCount?.();
+    } catch (error) {
+      console.error("No se pudo actualizar la cantidad", error);
+    } finally {
+      setUpdatingItem(null);
+    }
+  };
+
+  const eliminarItem = async (item: CarritoItem) => {
+    const productoId = String(item.producto?._id || item.producto._id);
+    if (!productoId) return;
+
+    const confirmacion = await Swal.fire({
+      title: "¿Eliminar producto?",
+      text: `¿Deseas quitar "${item.producto?.nombreProducto || "este producto"}" del carrito?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#3f3f46",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      background: "#18181b",
+      color: "#f4f4f5",
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    setUpdatingItem(String(item._id));
+    try {
+      const resp = await eliminarProductoDelCarritoApi(productoId);
+
+    if (!resp.ok) {
+      throw new Error("Error al eliminar el producto del carrito");
+      //const cantidadTotal = Number(item.cantidad) || 1;
+
+      // for (let i = 0; i < cantidadTotal; i += 1) {
+      //    await restarDelCarritoApi(productoId);
+        
+      }
+
+      await fetchCarrito();
+      await refreshCarritoCount?.();
+
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: "Producto eliminado",
+        showConfirmButton: false,
+        timer: 1500,
+        background: "#18181b",
+        color: "#f4f4f5",
+      });
+    } catch (error) {
+      console.error("No se pudo eliminar el producto del carrito", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo eliminar el producto",
+        background: "#18181b",
+        color: "#f4f4f5",
+      });
+    } finally {
+      setUpdatingItem(null);
+    }
+  };
+
+   const handleComprar = async () => {
+     if (!usuarioLogueado) return navegacion("/login");
+     setLoading(true);
+     try {
+       const resp = await crearPreferenciaPagoApi();
+       if (!resp.ok) throw new Error("Error creando preferencia");
+       const data = await resp.json();
+       const redirectUrl = data.init_point || data.sandbox_init_point;
+       if (redirectUrl) {
+         window.location.href = redirectUrl;
+       } else Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo obtener la URL de pago",
+        });
+      }
+    catch (error: any) {
+      console.error("Error al procesar la compra:", error);
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo iniciar el pago",
+        text: error?.response?.data?.mensaje || error?.message || "Error al procesar la compra",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+//  const handleComprar = async () => {
+//    if (!usuarioLogueado) return navegacion("/login");
+
+//    const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
+//    if (!idReserva) {
+//      return Swal.fire("Error", "No se encontró el ID de la reserva", "error");
+//    }
+
+//    try {
+//      const resp = await crearPreferenciaReservaApi(idReserva);
+
+//      // Parseamos la respuesta sea exitosa o de error
+//      const data = await resp.json().catch(() => null);
+
+//      if (!resp.ok) {
+//      // Muestra el mensaje exacto que devolvió el backend
+//        throw new Error(
+//          data?.mensaje || data?.message || data?.error || `Error HTTP ${resp.status}`
+//        );
+//      }
+
+//      const redirectUrl = data?.init_point || data?.sandbox_init_point;
+
+//    if (redirectUrl) {
+//        window.location.href = redirectUrl;
+//      } else {
+//        Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+//      }
+//  } catch (error) {
+//    console.error("Detalle del error:", error);
+//    Swal.fire({
+//      icon: "error",
+//      title: "No se pudo iniciar el pago",
+//      text: error.message, // <-- Muestra el motivo real en la alerta
+//    });
+//  }
+// ;
+ 
+//     const data = await resp.json().catch(() => null);
+
+//     if (!resp.ok) {
+//       throw new Error(data?.mensaje || "Error al generar la preferencia de pago");
+//     }
+
+//     const redirectUrl = data?.init_point || data?.sandbox_init_point;
+//     if (redirectUrl) {
+//       window.location.href = redirectUrl;
+//     } else {
+//       Swal.fire("Error", "No se obtuvo la URL de pago", "error");
+//     }
+//   } catch (error: any) {
+//     console.error("Error al procesar la compra:", error);
+//     Swal.fire({
+//       icon: "error",
+//       title: "No se pudo iniciar el pago",
+//       text: error.message,
+//     });
+//   }
+// };
+
+
+if (!usuarioLogueado) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <p className="text-center text-zinc-300">
+          Debes iniciar sesión para ver tu carrito.{" "}
+          <Link to="/login" className="text-blue-400">
+            Login
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Tu carrito</h2>
+
+      {!carrito ? (
+        <p className="text-zinc-400">Cargando carrito...</p>
+      ) : carrito.items.length === 0 ? (
+        <p className="text-zinc-400">Tu carrito está vacío.</p>
+      ) : (
+        <div className="bg-zinc-900 p-4 rounded-lg">
+          <ul className="space-y-4">
+            {carrito.items.map((it: CarritoItem) => (
+              <li key={it._id} className="flex items-center gap-4">
+                <img
+                  src={it.producto?.imagen}
+                  alt={it.producto?.nombreProducto}
+                  className="w-20 h-20 object-cover rounded"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">
+                      {it.producto?.nombreProducto}
+                    </h3>
+                    <div className="text-right">
+                      <div className="text-sm text-zinc-400">
+                        Unitario:{" "}
+                        {(it.producto?.precio || 0).toLocaleString("es-AR", {
+                          style: "currency",
+                          currency: "ARS",
+                        })}
+                      </div>
+                      <div className="font-semibold text-zinc-200">
+                        Subtotal:{" "}
+                        {(
+                          (Number(it.producto?.precio) || 0) *
+                          (Number(it.cantidad) || 0)
+                        ).toLocaleString("es-AR", {
+                          style: "currency",
+                          currency: "ARS",
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+                    <label htmlFor={`cantidad-${it._id}`}>Cantidad</label>
+                    <input
+                      id={`cantidad-${it._id}`}
+                      type="number"
+                      min="1"
+                      value={it.cantidad}
+                      disabled={updatingItem === String(it._id)}
+                      onChange={(event) =>
+                        void actualizarCantidad(it, Number(event.target.value))
+                      }
+                      className="w-20 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-center text-zinc-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void eliminarItem(it)}
+                      disabled={updatingItem === String(it._id)}
+                      className="text-rose-400 hover:text-rose-300 disabled:opacity-50"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-lg font-bold">
+              Total:{" "}
+              {calcularTotal().toLocaleString("es-AR", {
+                style: "currency",
+                currency: "ARS",
+              })}
+            </div>
+            <div>
+              <button
+                onClick={() => void handleComprar()}
+                disabled={loading}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded font-semibold"
+              >
+                {loading ? "Redirigiendo..." : "Comprar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Carrito;

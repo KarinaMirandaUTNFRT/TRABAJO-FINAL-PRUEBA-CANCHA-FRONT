@@ -1,19 +1,117 @@
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { useNavigate, useParams } from "react-router";
+import type { Cancha, CanchaFormData } from "../../interfaces/canchas";
+import Swal from "sweetalert2";
+import {
+  crearCanchaApi,
+  listarCategoriasApi,
+  editarCanchaApi,
+  buscarCanchaApi,
+} from "../../helpers/queries";
+import { useEffect, useState } from "react";
 
-const FormCancha = () => {
+interface FormularioCanchaProps {
+  titulo: string;
+}
+const FormCancha = ({ titulo }: FormularioCanchaProps) => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-    // reset,
-    // setValue,
-  } = useForm();
+  } = useForm<CanchaFormData>();
 
-  const onSubmit = () => {
-    
+  const { id } = useParams<{ id: string }>();
+  const navegacion = useNavigate();
+  const [categorias, setCategorias] = useState<Cancha[]>([]);
+  const cargarDatos = async () => {
+    if (titulo.includes("Editar cancha") && id && buscarCanchaApi) {
+      try {
+        const respuestaCancha = await buscarCanchaApi(id);
+
+        if (respuestaCancha.ok) {
+          const jsonRespuesta = await respuestaCancha.json();
+
+          const canchaBuscada = jsonRespuesta.cancha || jsonRespuesta;
+          setValue("nombreCancha", canchaBuscada.nombreCancha);
+          setValue("precio", canchaBuscada.precio);
+          const categoriaId =
+            canchaBuscada.categoria?._id ?? canchaBuscada.categoria;
+          setValue("categoria", categoriaId);
+          setValue("descripcion", canchaBuscada.descripcion);
+          setValue("imagen", canchaBuscada.imagen);
+        } else {
+          console.error(
+            "Error en la respuesta de la API. Status:",
+            respuestaCancha.status,
+          );
+        }
+      } catch (error) {
+        console.error("Error de red o al procesar la petición:", error);
+      }
+    }
   };
+  
+  useEffect(() => {
+    const obtenerCategorias = async () => {
+      try {
+        const respuesta = await listarCategoriasApi();
+        if (Array.isArray(respuesta)) {
+          setCategorias(respuesta);
+        }
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+    obtenerCategorias();
+    void cargarDatos();
+  }, []);
+  const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
+    try {
+      if (titulo.includes("Crear") && crearCanchaApi) {
+        await crearCanchaApi(data);
+        Swal.fire({
+          title: "La Cancha ha sido creada",
+          text: `La cancha '${data.nombreCancha}' fue creada correctamente`,
+          icon: "success",
+          background: "#18181b",
+          color: "#f4f4f5",
+          confirmButtonColor: "#3b82f6",
+        });
+        navegacion("/administrador/");
+        if (e) {
+          (e.target as HTMLFormElement).reset();
+        }
+      } else if (id) {
+        // Ejecutamos la edición con httpClient
+        await editarCanchaApi(id, data);
+        Swal.fire({
+          title: "Cancha Editada",
+          text: `La cancha '${data.nombreCancha}' fue editada correctamente`,
+          icon: "success",
+          background: "#18181b",
+          color: "#f4f4f5",
+          confirmButtonColor: "#3b82f6",
+        });
 
-  // Clase utilitaria para inputs
+        navegacion("/administrador/");
+      }
+    } catch (error: any) {
+      console.error("Error al procesar la operación:", error);
+
+      // Capturamos el mensaje exacto del error o de la respuesta del servidor
+      const mensajeError = error?.message || "No se pudo completar la operación";
+
+      Swal.fire({
+        title: "Ocurrió un Error",
+        text: mensajeError, // Muestra el error real para saber qué está fallando
+        icon: "error",
+        background: "#18181b",
+        color: "#f4f4f5",
+        confirmButtonColor: "#3b82f6",
+      });
+    }
+  };
   const inputClass = (hasError: boolean) => `
     w-full px-4 py-2.5 bg-zinc-950 border rounded-lg text-zinc-100 
     focus:outline-none focus:ring focus:ring-green-400 transition-all
@@ -24,7 +122,7 @@ const FormCancha = () => {
     <section className="max-w-4xl mx-auto animate-fadeIn">
       <div className="bg-slate-700 p-8 rounded-2xl border border-slate-900 shadow-xl my-3">
         <h1 className="text-3xl text-right font-bold text-white mb-8 border-b border-slate-500 pb-4">
-          Formulario Canchas
+          {titulo}
         </h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -65,7 +163,7 @@ const FormCancha = () => {
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-500 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Tipo Cancha*
               </label>
               <select
@@ -77,17 +175,21 @@ const FormCancha = () => {
                 <option value="" className="bg-zinc-900">
                   Seleccione una opción
                 </option>
-                <option value="Cancha Techada" className="bg-zinc-900">
-                  Cancha techada
-                </option>
-                <option value="Cancha Aire Libre" className="bg-zinc-900">
-                 Cancha aire libre
-                </option>
+                {categorias.map((categoria: any) => (
+                  <option
+                    key={categoria._id}
+                    value={categoria._id}
+                    className="bg-zinc-900"
+                  >
+                    {categoria.descripcion}
+                  </option>
+                ))}
               </select>
               <p className="text-red-500 text-xs mt-1 italic">
-                {errors.categoria?.message}
+                {errors.categoria?.message as string}
               </p>
             </div>
+
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-500 mb-2">
                 URL de Imagen*
@@ -129,13 +231,13 @@ const FormCancha = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="pt-4">
             <button
               type="submit"
               className="w-full md:w-auto px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-all active:scale-95 shadow-lg shadow-blue-900/20"
             >
-              Guardar Cancha
+              {titulo.includes("Editar") ? "Guardar Cambios" : "Crear Cancha"}
             </button>
           </div>
         </form>

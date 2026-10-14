@@ -9,7 +9,7 @@ export interface Cancha {
   nombreCancha: string;
   precio: number;
   imagen: string;
-  categoria: CategoriaCancha | string;
+  categoria: CategoriaCancha ;
   descripcion: string;
 }
 
