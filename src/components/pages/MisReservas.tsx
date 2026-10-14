@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate} from "react-router";
 import { useAppContext } from "../../context/AppContext";
 import {
   cancelarReservaApi,
@@ -9,7 +9,7 @@ import {
 import type { Reserva } from "../../interfaces/reserva";
 import Swal from "sweetalert2";
 
-const [searchParams] = useSearchParams();
+//const [searchParams] = useSearchParams();
 
 const MisReservas = () => {
   const { usuarioLogueado } = useAppContext();
@@ -40,8 +40,9 @@ const MisReservas = () => {
     void cargarReservas();
 
     // Captura el resultado del pago que manda Mercado Pago
-    const status = searchParams.get("status");
-    const paymentId = searchParams.get("payment_id");
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const paymentId = params.get("payment_id");
 
     if (status === "approved") {
       Swal.fire({
@@ -53,6 +54,7 @@ const MisReservas = () => {
 
       // Limpia los parámetros de la URL para que no vuelva a saltar si el usuario recarga la página
       navigate("/mis-reservas", { replace: true });
+      window.history.replaceState({}, document.title, window.location.pathname);
     } else if (status === "rejected") {
       Swal.fire({
         title: "Pago rechazado",
@@ -60,6 +62,7 @@ const MisReservas = () => {
         icon: "error",
         confirmButtonColor: "#ef4444",
       });
+      window.history.replaceState({}, document.title, window.location.pathname);
       navigate("/mis-reservas", { replace: true });
     } else if (status === "pending") {
       Swal.fire({
@@ -68,10 +71,11 @@ const MisReservas = () => {
         icon: "info",
         confirmButtonColor: "#3b82f6",
       });
-      navigate("/mis-reservas", { replace: true });
+      window.history.replaceState({}, document.title, window.location.pathname);
+      //navigate("/mis-reservas", { replace: true });
     }
 
-  }, [usuarioLogueado, navigate, searchParams]);
+  }, [usuarioLogueado, navigate]);
 
   const handleCancelarReserva = async (reserva: Reserva) => {
     const confirmacion = await Swal.fire({
