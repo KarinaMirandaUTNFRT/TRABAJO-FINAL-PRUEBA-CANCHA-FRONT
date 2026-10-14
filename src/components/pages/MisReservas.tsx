@@ -9,6 +9,8 @@ import {
 import type { Reserva } from "../../interfaces/reserva";
 import Swal from "sweetalert2";
 
+const [searchParams] = useSearchParams();
+
 const MisReservas = () => {
   const { usuarioLogueado } = useAppContext();
   const [reservas, setReservas] = useState<Reserva[]>([]);
@@ -36,7 +38,40 @@ const MisReservas = () => {
     }
 
     void cargarReservas();
-  }, [usuarioLogueado, navigate]);
+
+    // Captura el resultado del pago que manda Mercado Pago
+    const status = searchParams.get("status");
+    const paymentId = searchParams.get("payment_id");
+
+    if (status === "approved") {
+      Swal.fire({
+        title: "¡Pago confirmado!",
+        text: `Tu reserva se confirmó correctamente.${paymentId ? ` Comprobante N°: ${paymentId}` : ""}`,
+        icon: "success",
+        confirmButtonColor: "#22c55e",
+      });
+
+      // Limpia los parámetros de la URL para que no vuelva a saltar si el usuario recarga la página
+      navigate("/mis-reservas", { replace: true });
+    } else if (status === "rejected") {
+      Swal.fire({
+        title: "Pago rechazado",
+        text: "No se pudo procesar el pago. Puedes volver a intentarlo desde la lista.",
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+      });
+      navigate("/mis-reservas", { replace: true });
+    } else if (status === "pending") {
+      Swal.fire({
+        title: "Pago en proceso",
+        text: "El pago está pendiente de acreditación.",
+        icon: "info",
+        confirmButtonColor: "#3b82f6",
+      });
+      navigate("/mis-reservas", { replace: true });
+    }
+
+  }, [usuarioLogueado, navigate, searchParams]);
 
   const handleCancelarReserva = async (reserva: Reserva) => {
     const confirmacion = await Swal.fire({
