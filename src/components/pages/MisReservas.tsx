@@ -183,6 +183,9 @@ const MisReservas = () => {
               <h1 className="text-2xl font-extrabold sm:text-3xl text-zinc-100">
                 Mis Reservas de Cancha
               </h1>
+              <h2>
+                Recuerda que tu reserva se elimina automaticamente despues de los 15 minutos si no esta pagada
+              </h2>
             </div>
 
             <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-4 py-3 text-sm">
@@ -288,7 +291,7 @@ const MisReservas = () => {
                         
                           <button
                             type="button"
-                            className="w-full rounded-lg bg-blue-200-600/15 py-2 text-xs font-semibold text-blue-200-400 border border-rose-500/20 transition hover:bg-cyan-500-600 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="w-full rounded-lg bg-blue-200-600/15 py-2 text-xs font-semibold text-blue-200-400 border border-amber-50-500/20 transition hover:bg-cyan-500-600 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
                             onClick={() => void handlePagarPendiente(reserva._id)}
                           >
                             💳 <span>Pagar Reserva</span>

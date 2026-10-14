@@ -27,17 +27,23 @@ const fetchRequest = async <T>(endpoint: string, options: RequestOptions = {}): 
       
       const usuarioStorage = sessionStorage.getItem("usuarioLogueado");
       //console.log("CONTENIDO BRUTO DE usuarioLogueado:", usuarioStorage); // <-- MIRA ESTO EN LA CONSOLA
-
-      if (usuarioStorage) {
+       if (usuarioStorage) {
         const parsedUser = JSON.parse(usuarioStorage);
         // Intentamos todas las rutas posibles donde el backend guarde el token
+        // Verificamos que parsedUser no sea null ni undefined
+        if (parsedUser && typeof parsedUser === "object") {
         token = 
           parsedUser.token || 
           parsedUser.jwt || 
           parsedUser.accessToken || 
           parsedUser.usuario?.token || 
           parsedUser.data?.token || 
-          (typeof parsedUser === "string" ? parsedUser : null);
+          null;
+        }else if
+          (typeof parsedUser === "string"){
+            // parsedUser : null);
+           token = parsedUser; 
+          }
       }
     }
   } catch (e) {
