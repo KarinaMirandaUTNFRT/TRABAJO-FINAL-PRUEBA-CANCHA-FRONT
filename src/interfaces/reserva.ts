@@ -20,10 +20,12 @@ export interface CategoriaCancha{
 
 export interface Reserva {
   _id: string;
-  nombreReserva: string;
+  nombreReserva?: string;
   usuario: Usuario;
   cancha: Cancha;
-  fechaInicio:string;
+  fechaJornada?: string;
+  fechaInicio?: string;
+  fecha?: string;
   horaInicio: string;
   estado: string;
 }

@@ -20,7 +20,7 @@ const Menu = () => {
     }`;
   const logout = () => {
     sessionStorage.removeItem("usuarioLogueado");
-    sessionStorage.removeItem("usuarioLogueado");
+    localStorage.removeItem("usuarioLogueado");
     setUsuarioLogueado(null);
     setIsMenuOpen(false);
     navegacion("/");
@@ -80,7 +80,7 @@ const Menu = () => {
                   )}
                   {!isAdmin && (
                     <NavLink
-                      to={`/reservas/mis-reservas/${usuarioLogueado?._id}`}
+                      to="/mis-reservas"
                       className={navLinkStyles}
                     >
                       Tus Reservas
@@ -151,7 +151,11 @@ const Menu = () => {
                   Productos
                 </NavLink>
               )}
-              <NavLink to="/reservas" className={navLinkStyles}>
+              <NavLink
+                  to="/mis-reservas"
+                  className={navLinkStyles}
+                  onClick={() => setIsMenuOpen(false)}
+                >
                 Tus Reservas
               </NavLink>
               {!isAdmin && (

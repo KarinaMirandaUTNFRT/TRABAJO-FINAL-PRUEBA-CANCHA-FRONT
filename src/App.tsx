@@ -11,6 +11,7 @@ import Footer from "./components/shared/Footer";
 import Menu from "./components/shared/Menu";
 import ProtectorRutas from "./components/routes/ProtectorRutas";
 import ErrorBoundary from "./components/ErrorBoundary";
+import MisReservas from "./components/pages/MisReservas";
 
 // --- Importaciones Dinámicas (Lazy Loading) ---
 
@@ -120,7 +121,8 @@ function App() {
                 <Route path="/quienessomos" element={<QuienesSomos />} />
                 <Route path="/contacto" element={<Contacto />} />
                 <Route path="/carrito" element={<Carrito />} />
-                
+                <Route path="/mis-reservas" element={<MisReservas />} />
+
                 <Route path="*" element={<Error404 />} />
               </Routes>
             </Suspense>

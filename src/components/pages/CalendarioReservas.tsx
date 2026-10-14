@@ -7,6 +7,7 @@ import { obtenerDisponibilidad } from "../services/disponibilidadService";
 import {
   listarCanchasApi,
   crearPreferenciaReservaApi,
+  crearReservaApi,
 } from "../../helpers/queries";
 import Swal from "sweetalert2";
 
@@ -193,54 +194,74 @@ export default function CalendarioReservas() {
   //   }
   // };
 const handleComprar = async () => {
-  if (!usuarioLogueado) return navegacion("/login");
-
-  if (!turnoSeleccionado) {
-    return Swal.fire("Error", "Debes seleccionar un turno", "error");
-  }
-
-  try {
-    // 1. Primero creamos o registramos la reserva pendiente en la BD
-    // (Asegúrate de usar la función de tu API que crea reservas, por ejemplo crearReservaApi)
-    const respReserva = await crearReservaApi({
-      canchaId: turnoSeleccionado.canchaId || turnoSeleccionado.cancha,
-      fecha: turnoSeleccionado.fecha,
-      hora: turnoSeleccionado.hora,
-      precio: turnoSeleccionado.precio,
-    });
-
-    const dataReserva = await respReserva.json();
-    if (!respReserva.ok) {
-      throw new Error(dataReserva.mensaje || "Error al registrar la reserva previa");
+    if (!usuarioLogueado) {
+      Swal.fire({
+        icon: "info",
+        title: "Inicia sesión",
+        text: "Debes iniciar sesión para reservar una cancha",
+        background: "#18181b",
+        color: "#f4f4f5",
+      });
+      return;
     }
 
-    // Obtenemos el verdadero ObjectId generado por MongoDB
-    const idReservaCreada = dataReserva.reserva?._id || dataReserva._id;
+    try {
+      // 1. Datos validados directamente desde el estado del componente
+      const hora = turnoSeleccionado.horaInicio.trim();
+      const idCanchaSeleccionada = canchaId; // El ID exacto del select
+      const fechaAEnviar = fechaISO;         // 'YYYY-MM-DD' generado por convertirFechaAISO
 
-    // 2. Ahora sí generamos la preferencia con el ID real de la reserva
-    const respPago = await crearPreferenciaReservaApi(idReservaCreada);
-    const dataPago = await respPago.json();
+      // PASO 1: Crear la reserva en MongoDB con los nombres que exige tu backend
+      const respNuevaReserva = await crearReservaApi({
+        canchaId: idCanchaSeleccionada,
+        fecha: fechaAEnviar,
+        turnos: [hora], // Array de turnos: ['08:00']
+      } as any);
 
-    if (!respPago.ok) {
-      throw new Error(dataPago.mensaje || "Error al generar la preferencia de pago");
+      if (!respNuevaReserva.ok) {
+        const errData = await respNuevaReserva.json().catch(() => null);
+        throw new Error(errData?.mensaje || "No se pudo registrar la reserva");
+      }
+
+      const respuestaJson = await respNuevaReserva.json();
+
+      // Tu backend devuelve: { mensaje: "...", reservas: [ { _id, ... } ] }
+      const idReserva =
+        respuestaJson.reservas?.[0]?._id ||
+        respuestaJson._id ||
+        respuestaJson.reserva?._id;
+
+      if (!idReserva) {
+        throw new Error("No se pudo obtener el identificador de la reserva creada");
+      }
+
+      // PASO 2: Generar la orden y preferencia en Mercado Pago con el ID de la reserva
+      const respPreferencia = await crearPreferenciaReservaApi(idReserva);
+      const dataPreferencia = await respPreferencia.json();
+
+      if (!respPreferencia.ok) {
+        throw new Error(dataPreferencia.mensaje || "Error al generar la orden de pago");
+      }
+
+      // PASO 3: Redirigir a Mercado Pago
+      const linkPago = dataPreferencia.init_point || dataPreferencia.sandbox_init_point;
+      if (linkPago) {
+        window.location.href = linkPago;
+      } else {
+        throw new Error("No se recibió la URL de pago de Mercado Pago");
+      }
+    } catch (error: any) {
+      console.error("Error en el proceso de reserva y pago:", error);
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo iniciar el pago",
+        text: error.message || "Ocurrió un error inesperado al procesar la reserva",
+        confirmButtonColor: "#ef4444",
+        background: "#18181b",
+        color: "#f4f4f5",
+      });
     }
-
-    const redirectUrl = dataPago.init_point || dataPago.sandbox_init_point;
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
-    } else {
-      Swal.fire("Error", "No se obtuvo la URL de pago", "error");
-    }
-  } catch (error: any) {
-    console.error("Error al procesar la compra:", error);
-    Swal.fire({
-      icon: "error",
-      title: "No se pudo iniciar el pago",
-      text: error.message,
-    });
-  }
-};
-
+  };
   const getEstilosTurno = (turno: any, isSelected: boolean) => {
     const base =
       "flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition-all duration-150 select-none";
@@ -470,4 +491,4 @@ const handleComprar = async () => {
       )}
     </section>
   );
-}
+};
