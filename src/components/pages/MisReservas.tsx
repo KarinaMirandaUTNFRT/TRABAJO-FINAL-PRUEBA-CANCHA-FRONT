@@ -157,7 +157,7 @@ const MisReservas = () => {
       }
 
       // Mercado Pago devuelve init_point (o sandbox_init_point en modo prueba)
-      const urlPago = data.init_point || data.sandbox_init_point || data.url;
+      const urlPago = data.sandbox_init_point ||data.init_point ||  data.url;
 
       if (urlPago) {
         window.location.href = urlPago; // Redirige al usuario al checkout de Mercado Pago
