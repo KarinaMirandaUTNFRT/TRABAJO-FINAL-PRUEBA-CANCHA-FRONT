@@ -12,9 +12,33 @@ const urlProductos = `${import.meta.env.VITE_ALQUILER_CANCHAS}/productos`;
 const urlCategoriasProductos = `${import.meta.env.VITE_ALQUILER_CANCHAS}/categoriaProductos`;
 const urlCarrito = `${import.meta.env.VITE_ALQUILER_CANCHAS}/carrito`;
 const urlPagoProducto = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoProducto`;
-const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha`;
+//const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha`;
 const urlMisReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/mis-reservas`;
 const urlReservasTotales = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas`;
+
+const BASE_URL = import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
+
+const obtenerToken = (): string => {
+  let token = sessionStorage.getItem("token") || 
+  localStorage.getItem("token");
+
+  if (!token) {
+    const rawUser =
+      sessionStorage.getItem("usuarioLogueado") ||
+      localStorage.getItem("usuarioLogueado");
+
+    if (rawUser) {
+      try {
+        const usuario = JSON.parse(rawUser);
+        token = usuario?.token;
+      } catch (err) {
+        console.error("Error parseando usuario:", err);
+      }
+    }
+  }
+
+  return token || "";
+};
 
 export interface ListarProductosParams {
   paginaNumero?: number;
@@ -56,7 +80,8 @@ export const crearCanchaApi = async (
 ): Promise<Response> => {
   try {
     const token =
-      sessionStorage.getItem("token") || localStorage.getItem("token");
+      sessionStorage.getItem("token") || 
+      localStorage.getItem("token");
     const respuesta = await fetch(urlCanchas, {
       method: "POST",
       credentials: "include",
@@ -418,38 +443,28 @@ export const crearPreferenciaPagoApi = async () => {
 };
 // para el pago de canchas
 export const crearPreferenciaReservaApi = async (reservaId: string) => {
-  let token = localStorage.getItem("token");
-  if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
-    if (rawUser) {
-      try {
-        token = JSON.parse(rawUser)?.token;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
+  const token = obtenerToken();
 
-  const resp = await fetch(`${urlPagoCancha}/crear-preferencia`, 
-     {
+  const resp = await fetch(`${BASE_URL}/reservas/crear-preferencia`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      "x-token": token,
+      Authorization: `Bearer ${token}`,
     },
-    credentials: "include",
-    body: JSON.stringify({ reservaId }), // Envía la clave que espera el backend
+    body: JSON.stringify({ reservaId }),
   });
 
-  return resp;
+  return await resp.json();
 };
 
 export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
-  let token = localStorage.getItem("token");
+  let token = sessionStorage.getItem("token");
 
   if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
+    const rawUser = 
+    sessionStorage.getItem("usuarioLogueado") || 
+    localStorage.getItem("usuarioLogueado");
     if (rawUser) {
       try {
         const usuario = JSON.parse(rawUser);
@@ -477,34 +492,22 @@ return await resp.json();
   
 };
 export const cancelarReservaApi = async (id: string) => {
-  let token = localStorage.getItem("token");
+  const token = obtenerToken();
 
-  if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
-    if (rawUser) {
-      try {
-        const usuario = JSON.parse(rawUser);
-        token = usuario?.token;
-      } catch (err) {
-        console.error("Error parseando usuario:", err);
-      }
-    }
-  }
-
-  const urlBase =
-    import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
-
-  const resp = await fetch(`${urlBase}/reservas/${id}/cancelar`, {
-    method: "PATCH",
+  const resp = await fetch(`${BASE_URL}/reservas/${id}`, {
+    method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      "x-token": token,
+      Authorization: `Bearer ${token}`,
     },
-    credentials: "include",
   });
 
-  return resp;
+  if (!resp.ok) {
+    throw new Error("Error al cancelar la reserva");
+  }
+
+  return await resp.json();
 };
 // 1. Crear la reserva en MongoDB
 export const crearReservaApi = async (datosReserva: {
@@ -516,30 +519,18 @@ export const crearReservaApi = async (datosReserva: {
   horaInicio?: string;
   [key: string]: any;
 }) => {
-  let token = localStorage.getItem("token");
-  if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
-    if (rawUser) {
-      try {
-        token = JSON.parse(rawUser)?.token;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
+  const token = obtenerToken();
 
-  const urlBase = import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
-
-  const resp = await fetch(`${urlBase}/reservas`, {
+  const resp = await fetch(`${BASE_URL}/reservas`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      "x-token": token,
+      Authorization: `Bearer ${token}`,
     },
-    credentials: "include",
     body: JSON.stringify(datosReserva),
   });
 
   return resp;
 };
+  
