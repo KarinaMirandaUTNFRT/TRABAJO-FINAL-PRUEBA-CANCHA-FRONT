@@ -12,7 +12,7 @@ const urlProductos = `${import.meta.env.VITE_ALQUILER_CANCHAS}/productos`;
 const urlCategoriasProductos = `${import.meta.env.VITE_ALQUILER_CANCHAS}/categoriaProductos`;
 const urlCarrito = `${import.meta.env.VITE_ALQUILER_CANCHAS}/carrito`;
 const urlPagoProducto = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoProducto`;
-//const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha`;
+const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha`;
 const urlMisReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/mis-reservas`;
 const urlReservasTotales = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas`;
 
@@ -445,7 +445,7 @@ export const crearPreferenciaPagoApi = async () => {
 export const crearPreferenciaReservaApi = async (reservaId: string) => {
   const token = obtenerToken();
 
-  const resp = await fetch(`${BASE_URL}/reservas/crear-preferencia`, {
+  const resp = await fetch(urlPagoCancha, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
