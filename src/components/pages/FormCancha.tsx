@@ -53,19 +53,19 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
   };
   
   useEffect(() => {
-    const obtenerCategorias = async () => {
-      try {
-        const respuesta = await listarCategoriasApi();
-        if (Array.isArray(respuesta)) {
-          setCategorias(respuesta);
-        }
-      } catch (error) {
-        console.error("Error al cargar categorías:", error);
-      }
-    };
-    obtenerCategorias();
-    void cargarDatos();
-  }, []);
+  const obtenerCategorias = async () => {
+    try {
+      const respuesta = await listarCategoriasApi();
+      // Acceso directo a la propiedad exacta:
+      setCategorias((respuesta as any)?.categorias ?? []);
+    } catch (error) {
+      console.error("Error al cargar categorías:", error);
+    }
+  };
+
+  obtenerCategorias();
+  void cargarDatos();
+}, []);
   const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
     try {
       if (titulo.includes("Crear") && crearCanchaApi) {
@@ -181,7 +181,7 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
                     value={categoria._id}
                     className="bg-zinc-900"
                   >
-                    {categoria.descripcion}
+                    {categoria.nombre}
                   </option>
                 ))}
               </select>
