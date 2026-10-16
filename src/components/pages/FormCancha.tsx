@@ -67,51 +67,48 @@ const FormCancha = ({ titulo }: FormularioCanchaProps) => {
   void cargarDatos();
 }, []);
   const onSubmit: SubmitHandler<CanchaFormData> = async (data, e) => {
-    try {
-      if (titulo.includes("Crear") && crearCanchaApi) {
-        await crearCanchaApi(data);
-        Swal.fire({
-          title: "La Cancha ha sido creada",
-          text: `La cancha '${data.nombreCancha}' fue creada correctamente`,
-          icon: "success",
-          background: "#18181b",
-          color: "#f4f4f5",
-          confirmButtonColor: "#3b82f6",
-        });
-        navegacion("/administrador/");
-        if (e) {
-          (e.target as HTMLFormElement).reset();
-        }
-      } else if (id) {
-        // Ejecutamos la edición con httpClient
-        await editarCanchaApi(id, data);
-        Swal.fire({
-          title: "Cancha Editada",
-          text: `La cancha '${data.nombreCancha}' fue editada correctamente`,
-          icon: "success",
-          background: "#18181b",
-          color: "#f4f4f5",
-          confirmButtonColor: "#3b82f6",
-        });
-
-        navegacion("/administrador/");
-      }
-    } catch (error: any) {
-      console.error("Error al procesar la operación:", error);
-
-      // Capturamos el mensaje exacto del error o de la respuesta del servidor
-      const mensajeError = error?.message || "No se pudo completar la operación";
-
+  try {
+    if (titulo.includes("Crear") && crearCanchaApi) {
+      await crearCanchaApi(data);
+      
       Swal.fire({
-        title: "Ocurrió un Error",
-        text: mensajeError, // Muestra el error real para saber qué está fallando
-        icon: "error",
+        title: "La Cancha ha sido creada",
+        text: `La cancha '${data.nombreCancha}' fue creada correctamente`,
+        icon: "success",
         background: "#18181b",
         color: "#f4f4f5",
         confirmButtonColor: "#3b82f6",
       });
+
+      navegacion("/administrador/");
+      if (e) {
+        (e.target as HTMLFormElement).reset();
+      }
+    } else if (id) {
+      await editarCanchaApi(id, data);
+      
+      Swal.fire({
+        title: "Cancha Editada",
+        text: `La cancha '${data.nombreCancha}' fue editada correctamente`,
+        icon: "success",
+        background: "#18181b",
+        color: "#f4f4f5",
+        confirmButtonColor: "#3b82f6",
+      });
+
+      navegacion("/administrador/");
     }
-  };
+  } catch (error: any) {
+    Swal.fire({
+      title: "No se pudo guardar la cancha",
+      text: error.message || "Ocurrió un error al procesar la solicitud",
+      icon: "error",
+      background: "#18181b",
+      color: "#f4f4f5",
+      confirmButtonColor: "#ef4444",
+    });
+  }
+};
   const inputClass = (hasError: boolean) => `
     w-full px-4 py-2.5 bg-zinc-950 border rounded-lg text-zinc-100 
     focus:outline-none focus:ring focus:ring-green-400 transition-all

@@ -74,24 +74,37 @@ export const buscarCanchaApi = async (id: string): Promise<Response> => {
     throw error;
   }
 };
-
 export const crearCanchaApi = async (
   cancha: CanchaFormData,
-): Promise<Response> => {
+): Promise<any> => {
   try {
     const token =
       sessionStorage.getItem("token") || 
       localStorage.getItem("token");
+
     const respuesta = await fetch(urlCanchas, {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        // En Express algunos usan 'Authorization' y otros 'x-token':
         Authorization: `Bearer ${token}`,
+        "x-token": token || "",
       },
       body: JSON.stringify(cancha),
     });
-    return respuesta;
+
+    const datos = await respuesta.json().catch(() => ({}));
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje || 
+        datos.msg || 
+        `Error ${respuesta.status}: No autorizado para crear la cancha`
+      );
+    }
+
+    return datos;
   } catch (error) {
     console.error("Error al crear la cancha:", error);
     throw error;
