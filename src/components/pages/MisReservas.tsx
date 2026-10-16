@@ -188,9 +188,7 @@ const MisReservas = () => {
       //const resp = await crearPreferenciaReservaApi(reservaId);
       const data = await crearPreferenciaReservaApi(reservaId);//resp.json();
 
-      // if (data.mensaje && !data.init_point && !data.sandbox_init_point && !data.url) {
-      // throw new Error(data.mensaje);
-      // }
+      // npm
       // if (!resp.ok) {
       //   throw new Error(
       //     data.mensaje || "Error al generar la preferencia de pago",

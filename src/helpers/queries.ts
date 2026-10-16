@@ -16,7 +16,7 @@ const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha/crear
 const urlMisReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/mis-reservas`;
 const urlReservasTotales = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas`;
 
-const BASE_URL = import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
+const BASE_URL = import.meta.env.VITE_ALQUILER_CANCHAS || "https://alquiler-cancha-proyecto-final-backend.onrender.com/api";
 
 const obtenerToken = (): string => {
   let token = sessionStorage.getItem("token") || 
