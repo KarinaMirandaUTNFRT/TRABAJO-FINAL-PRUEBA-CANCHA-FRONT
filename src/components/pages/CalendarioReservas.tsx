@@ -240,14 +240,17 @@ const handleComprar = async () => {
 
       // PASO 2: Generar la orden y preferencia en Mercado Pago con el ID de la reserva
       const respPreferencia = await crearPreferenciaReservaApi(idReserva);
-      const dataPreferencia = await respPreferencia.json();
+      const dataPreferencia =
+        typeof (respPreferencia as any)?.json === "function"
+          ? await (respPreferencia as any).json()
+          : respPreferencia;
 
-      if (!respPreferencia.ok) {
-        throw new Error(dataPreferencia.mensaje || "Error al generar la orden de pago");
+      if ((respPreferencia as any)?.ok === false || dataPreferencia?.error) {
+        throw new Error(dataPreferencia?.mensaje || dataPreferencia?.error || "Error al generar la orden de pago");
       }
-
       // PASO 3: Redirigir a Mercado Pago
-      const linkPago = dataPreferencia.init_point || dataPreferencia.sandbox_init_point;
+      const linkPago = dataPreferencia.init_point || dataPreferencia.sandbox_init_point||
+        dataPreferencia?.url;
       if (linkPago) {
         window.location.href = linkPago;
       } else {
