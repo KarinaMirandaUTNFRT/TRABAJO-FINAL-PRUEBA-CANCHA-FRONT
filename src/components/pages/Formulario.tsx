@@ -56,8 +56,8 @@ const Formulario = ({ titulo }: FormularioProps) => {
 
     cargarCategorias();
     if (id) {
-    void cargarDatos(); 
-  }
+      void cargarDatos();
+    }
   }, [id]);
 
   const onSubmit: SubmitHandler<ProductoFormData> = async (data, e) => {
@@ -161,11 +161,17 @@ const Formulario = ({ titulo }: FormularioProps) => {
                 {...register("categoria", {
                   required: "Seleccione una categoría",
                 })}
-                className="..."
+                className={inputClass(!!errors.categoria)}
               >
-                <option value="">Seleccione una opción</option>
+                <option value="" className="bg-zinc-900 text-zinc-300">
+                  Seleccione una opción
+                </option>
                 {categorias.map((cat: any) => (
-                  <option key={cat._id} value={cat._id}>
+                  <option
+                    key={cat._id}
+                    value={cat._id}
+                    className="bg-zinc-900 text-white"
+                  >
                     {cat.nombre}
                   </option>
                 ))}
