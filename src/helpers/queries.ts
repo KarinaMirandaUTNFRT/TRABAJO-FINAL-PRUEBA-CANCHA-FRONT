@@ -16,11 +16,12 @@ const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha/crear
 const urlMisReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/mis-reservas`;
 const urlReservasTotales = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas`;
 
-const BASE_URL = import.meta.env.VITE_ALQUILER_CANCHAS || "https://alquiler-cancha-proyecto-final-backend.onrender.com/api";
+const BASE_URL =
+  import.meta.env.VITE_ALQUILER_CANCHAS ||
+  "https://alquiler-cancha-proyecto-final-backend.onrender.com/api";
 
 const obtenerToken = (): string => {
-  let token = sessionStorage.getItem("token") || 
-  localStorage.getItem("token");
+  let token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   if (!token) {
     const rawUser =
@@ -53,8 +54,9 @@ export interface ListarReservasParams {
   pagina?: number;
   limite?: number;
   termino?: string;
+  estado?: string;
 }
- export const listarCanchasApi = async (): Promise<any> => {
+export const listarCanchasApi = async (): Promise<any> => {
   try {
     const respuesta = await httpClient.get("/canchas");
 
@@ -74,13 +76,10 @@ export const buscarCanchaApi = async (id: string): Promise<Response> => {
     throw error;
   }
 };
-export const crearCanchaApi = async (
-  cancha: CanchaFormData,
-): Promise<any> => {
+export const crearCanchaApi = async (cancha: CanchaFormData): Promise<any> => {
   try {
     const token =
-      sessionStorage.getItem("token") || 
-      localStorage.getItem("token");
+      sessionStorage.getItem("token") || localStorage.getItem("token");
 
     const respuesta = await fetch(urlCanchas, {
       method: "POST",
@@ -98,9 +97,9 @@ export const crearCanchaApi = async (
 
     if (!respuesta.ok) {
       throw new Error(
-        datos.mensaje || 
-        datos.msg || 
-        `Error ${respuesta.status}: No autorizado para crear la cancha`
+        datos.mensaje ||
+          datos.msg ||
+          `Error ${respuesta.status}: No autorizado para crear la cancha`,
       );
     }
 
@@ -151,15 +150,41 @@ export const listarReservasApiAdm = async (
   params: ListarReservasParams = {},
 ): Promise<Response> => {
   try {
+    // 1. Obtener el token (ya sea suelto o dentro de usuarioLogueado)
+    const tokenDirecto =
+      sessionStorage.getItem("token") || localStorage.getItem("token");
+
+    const usuarioStorage = JSON.parse(
+      sessionStorage.getItem("usuarioLogueado") ||
+        localStorage.getItem("usuarioLogueado") ||
+        "{}",
+    );
+
+    const token = tokenDirecto || usuarioStorage.token || "";
+
+    // 2. Armar los parámetros de la URL
     const query = new URLSearchParams();
     const pagina = params.pagina ?? params.paginaNumero ?? 1;
     const limite = params.limite ?? params.cantReservas ?? 8;
     query.set("pagina", String(pagina));
     query.set("limite", String(limite));
+
     if (params.termino) {
       query.set("termino", params.termino);
     }
-    const respuesta = await fetch(`${urlReservasTotales}?${query.toString()}`);
+    // Incluimos el filtro de estado si existe y no es "todas"
+    if (params.estado && params.estado !== "todas") {
+      query.set("estado", params.estado);
+    }
+
+    const respuesta = await fetch(`${urlReservasTotales}?${query.toString()}`,{
+method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-token": token,
+      },
+    });
     return respuesta;
   } catch (error) {
     console.error("Error al listar Reservas:", error);
@@ -271,8 +296,7 @@ export const crearProductoApi = async (
 ): Promise<any> => {
   try {
     const token =
-      sessionStorage.getItem("token") || 
-      localStorage.getItem("token");
+      sessionStorage.getItem("token") || localStorage.getItem("token");
 
     const respuesta = await fetch(urlProductos, {
       method: "POST",
@@ -289,9 +313,9 @@ export const crearProductoApi = async (
 
     if (!respuesta.ok) {
       throw new Error(
-        datos.mensaje || 
-        datos.msg || 
-        `Error ${respuesta.status}: No se pudo crear el producto`
+        datos.mensaje ||
+          datos.msg ||
+          `Error ${respuesta.status}: No se pudo crear el producto`,
       );
     }
 
@@ -401,13 +425,16 @@ export const agregarAlCarritoApi = async (
     throw error;
   }
 };
-export const restarDelCarritoApi = async (productoId: string, token?: string): Promise<Response> => {
+export const restarDelCarritoApi = async (
+  productoId: string,
+  token?: string,
+): Promise<Response> => {
   const authToken =
     token ||
     JSON.parse(
       sessionStorage.getItem("usuario") ||
-      localStorage.getItem("usuario") ||
-      "{}"
+        localStorage.getItem("usuario") ||
+        "{}",
     )?.token;
 
   return await fetch(`http://localhost:3000/api/carrito/restar/${productoId}`, {
@@ -415,18 +442,21 @@ export const restarDelCarritoApi = async (productoId: string, token?: string): P
     headers: {
       "Content-Type": "application/json",
       "x-token": authToken || "",
-      "Authorization": `Bearer ${authToken || ""}`,
+      Authorization: `Bearer ${authToken || ""}`,
     },
     credentials: "include",
   });
 };
-export const eliminarProductoDelCarritoApi = async (productoId: string, token?: string): Promise<Response> => {
+export const eliminarProductoDelCarritoApi = async (
+  productoId: string,
+  token?: string,
+): Promise<Response> => {
   const authToken =
     token ||
     JSON.parse(
       sessionStorage.getItem("usuario") ||
-      localStorage.getItem("usuario") ||
-      "{}"
+        localStorage.getItem("usuario") ||
+        "{}",
     )?.token;
 
   return await fetch(`http://localhost:3000/api/carrito/${productoId}`, {
@@ -434,7 +464,7 @@ export const eliminarProductoDelCarritoApi = async (productoId: string, token?: 
     headers: {
       "Content-Type": "application/json",
       "x-token": authToken || "",
-      "Authorization": `Bearer ${authToken || ""}`,
+      Authorization: `Bearer ${authToken || ""}`,
     },
     credentials: "include",
   });
@@ -492,9 +522,9 @@ export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
   let token = sessionStorage.getItem("token");
 
   if (!token) {
-    const rawUser = 
-    sessionStorage.getItem("usuarioLogueado") || 
-    localStorage.getItem("usuarioLogueado");
+    const rawUser =
+      sessionStorage.getItem("usuarioLogueado") ||
+      localStorage.getItem("usuarioLogueado");
     if (rawUser) {
       try {
         const usuario = JSON.parse(rawUser);
@@ -505,12 +535,13 @@ export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
     }
   }
 
-  const resp = await fetch(urlMisReservas, { // Ajusta la ruta a tu endpoint
+  const resp = await fetch(urlMisReservas, {
+    // Ajusta la ruta a tu endpoint
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      Authorization: `Bearer ${token || ""}`,
     },
     credentials: "include",
   });
@@ -518,8 +549,7 @@ export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
   if (!resp.ok) {
     throw new Error("Error al obtener las reservas");
   }
-return await resp.json();
-  
+  return await resp.json();
 };
 export const cancelarReservaApi = async (id: string) => {
   const token = obtenerToken();
@@ -563,4 +593,3 @@ export const crearReservaApi = async (datosReserva: {
 
   return resp;
 };
-  
