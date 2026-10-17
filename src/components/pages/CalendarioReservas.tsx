@@ -214,7 +214,10 @@ const handleComprar = async () => {
       // PASO 1: Crear la reserva en MongoDB con los nombres que exige tu backend
       const respNuevaReserva = await crearReservaApi({
         canchaId: idCanchaSeleccionada,
-        fecha: fechaAEnviar,
+        nombreCliente:
+    usuarioLogueado?.nombre ||
+    usuarioLogueado?.email?.split("@")[0] ||
+    "Cliente RollingClub",        fecha: fechaAEnviar,
         turnos: [hora], // Array de turnos: ['08:00']
       } as any);
 

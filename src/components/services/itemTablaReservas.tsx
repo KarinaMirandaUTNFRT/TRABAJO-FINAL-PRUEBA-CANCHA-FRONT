@@ -16,9 +16,11 @@ const ItemTablaReserva = ({ reserva, fila, recargarReservas }: ItemTablaReservaP
     "Cancha";
 
   const nombreCliente =
+  (reserva as any)?.nombreCliente ||
     reserva.nombreReserva ||
     (reserva.usuario as any)?.nombre ||
     (reserva.usuario as any)?.nombreUsuario ||
+    (reserva.usuario as any)?.email?.split("@")[0] ||
     "Cliente";
 
   const fecha = reserva.fechaJornada || reserva.fecha || reserva.fechaInicio || "-";
@@ -87,7 +89,7 @@ const ItemTablaReserva = ({ reserva, fila, recargarReservas }: ItemTablaReservaP
             reserva.estado
           )}`}
         >
-          {reserva.estado === "confirmada" ? "Confirmada / Pagada" : reserva.estado}
+          {reserva.estado === "confirmada" ? "Confirmada" : reserva.estado}
         </span>
       </td>
       <td className="px-6 py-4 text-center">
