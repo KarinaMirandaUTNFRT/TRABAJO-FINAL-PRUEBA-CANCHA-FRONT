@@ -268,19 +268,36 @@ export const listarCategoriasProductosApi = async (): Promise<any[]> => {
 
 export const crearProductoApi = async (
   producto: ProductoFormData,
-): Promise<Response> => {
+): Promise<any> => {
   try {
+    const token =
+      sessionStorage.getItem("token") || 
+      localStorage.getItem("token");
+
     const respuesta = await fetch(urlProductos, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-token": token || "",
       },
       body: JSON.stringify(producto),
-      credentials: "include",
     });
-    return respuesta;
+
+    const datos = await respuesta.json().catch(() => ({}));
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje || 
+        datos.msg || 
+        `Error ${respuesta.status}: No se pudo crear el producto`
+      );
+    }
+
+    return datos;
   } catch (error) {
-    console.error(error);
+    console.error("Error al crear producto:", error);
     throw error;
   }
 };

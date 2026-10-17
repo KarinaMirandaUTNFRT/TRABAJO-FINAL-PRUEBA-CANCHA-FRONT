@@ -11,35 +11,49 @@ const DetalleProducto = () => {
   const [cargando, setCargando] = useState<boolean>(true);
 
   useEffect(() => {
-    const cargarProducto = async () => {
-      if (!id) return;
-      try {
-        setCargando(true);
-        const respuesta = await buscarProductoApi(id);
-        if (respuesta.ok) {
-          const dato = await respuesta.json();
-          setProducto(dato);
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se encontró el producto solicitado",
-          }).then(() => navigate("/productos"));
-        }
-      } catch (error) {
-        console.error("Error al cargar producto:", error);
+  const cargarProducto = async () => {
+    if (!id) return;
+    try {
+      setCargando(true);
+      const respuesta = await buscarProductoApi(id);
+
+      // Si buscarProductoApi retorna Response de fetch:
+      let dato;
+      if (respuesta && typeof respuesta.json === "function") {
+        if (!respuesta.ok) throw new Error("Producto no encontrado");
+        dato = await respuesta.json();
+      } else {
+        // Si buscarProductoApi ya devuelve el JSON procesado
+        dato = respuesta;
+      }
+
+      // Si el backend lo devuelve envuelto en { producto: { ... } } o directo:
+      const productoFinal = dato?.producto || dato;
+
+      if (!productoFinal || Object.keys(productoFinal).length === 0) {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Ocurrió un error al obtener los datos del servidor",
-        });
-      } finally {
-        setCargando(false);
+          text: "No se encontró el producto solicitado",
+        }).then(() => navigate("/productos"));
+        return;
       }
-    };
 
-    cargarProducto();
-  }, [id, navigate]);
+      setProducto(productoFinal);
+    } catch (error) {
+      console.error("Error al cargar producto:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error al obtener los datos del servidor",
+      });
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  cargarProducto();
+}, [id, navigate]);
 
   if (cargando) {
     return (
