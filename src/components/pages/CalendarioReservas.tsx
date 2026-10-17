@@ -249,8 +249,10 @@ const handleComprar = async () => {
         throw new Error(dataPreferencia?.mensaje || dataPreferencia?.error || "Error al generar la orden de pago");
       }
       // PASO 3: Redirigir a Mercado Pago
-      const linkPago = dataPreferencia.init_point || dataPreferencia.sandbox_init_point||
-        dataPreferencia?.url;
+      const linkPago = 
+      dataPreferencia.sandbox_init_point||
+      dataPreferencia.init_point || 
+      dataPreferencia?.url;
       if (linkPago) {
         window.location.href = linkPago;
       } else {
