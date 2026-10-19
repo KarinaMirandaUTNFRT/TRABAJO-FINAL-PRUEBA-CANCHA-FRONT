@@ -10,7 +10,8 @@ import {
   listarCategoriasProductosApi,
 } from "../../helpers/queries";
 
-interface FormularioProps {
+interface FormularioProps
+ {
   titulo: string;
 }
 

@@ -10,7 +10,8 @@ import {
 } from "../../helpers/queries";
 import { useEffect, useState } from "react";
 
-interface FormularioCanchaProps {
+interface FormularioCanchaProps
+ {
   titulo: string;
 }
 const FormCancha = ({ titulo }: FormularioCanchaProps) => {
