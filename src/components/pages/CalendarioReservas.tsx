@@ -156,43 +156,6 @@ export default function CalendarioReservas() {
     setMostrarModal(true);
   }
 
-  // const handleComprar = async () => {
-  //   if (!usuarioLogueado) return navegacion("/login");
-  //   const idReserva = turnoSeleccionado?.id || turnoSeleccionado?._id;
-  //   if (!idReserva) {
-  //     return Swal.fire(
-  //       "Error",
-  //       "No se encontró el ID de la reserva a pagar",
-  //       "error",
-  //     );
-  //   }
-  //   try {
-      
-  //     const data = await resp.json().catch(() => null);
-      
-  //     if (!resp.ok) {
-  //       const errorJson = await resp.json().catch(() => ({}));
-  //       throw new Error(
-  //         errorJson.mensaje || "Error al generar la preferencia de pago",
-  //       );
-  //     }
-
-  //     const data = await resp.json();
-  //     const redirectUrl = data.init_point || data.sandbox_init_point;
-
-  //     if (redirectUrl) {
-  //       window.location.href = redirectUrl;
-  //     } else {
-  //       Swal.fire("Error", "No se obtuvo la URL de pago", "error");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error al procesar la compra:", error);
-  //     Swal.fire({
-  //       icon: "error",
-  //       title: "No se pudo iniciar el pago",
-  //     });
-  //   }
-  // };
 const handleComprar = async () => {
     if (!usuarioLogueado) {
       Swal.fire({
