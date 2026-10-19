@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate} from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAppContext } from "../../context/AppContext";
 import {
   cancelarReservaApi,
@@ -74,7 +74,6 @@ const MisReservas = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
       //navigate("/mis-reservas", { replace: true });
     }
-
   }, [usuarioLogueado, navigate]);
 
   const handleCancelarReserva = async (reserva: Reserva) => {
@@ -186,22 +185,24 @@ const MisReservas = () => {
   };
   const handlePagarPendiente = async (reservaId: string) => {
     try {
-      const resp = await crearPreferenciaReservaApi(reservaId);
-      const data = await resp.json();
+      //const resp = await crearPreferenciaReservaApi(reservaId);
+      const data = await crearPreferenciaReservaApi(reservaId);//resp.json();
 
-      if (!resp.ok) {
-        throw new Error(
-          data.mensaje || "Error al generar la preferencia de pago",
-        );
-      }
+      // npm
+      // if (!resp.ok) {
+      //   throw new Error(
+      //     data.mensaje || "Error al generar la preferencia de pago",
+      //   );
+      // }
 
       // Mercado Pago devuelve init_point (o sandbox_init_point en modo prueba)
-      const urlPago = data.sandbox_init_point ||data.init_point ||  data.url;
+      const urlPago = data.sandbox_init_point || data.init_point || data.url;
 
       if (urlPago) {
         window.location.href = urlPago; // Redirige al usuario al checkout de Mercado Pago
       } else {
         console.error("No se encontró la URL de pago en la respuesta:", data);
+        alert("No se pudo obtener el enlace de pago");
       }
     } catch (error: any) {
       console.error("Error al reintentar pago:", error);
@@ -223,7 +224,8 @@ const MisReservas = () => {
                 Mis Reservas de Cancha
               </h1>
               <h2>
-                Recuerda que tu reserva se elimina automaticamente despues de los 15 minutos si no esta pagada
+                Recuerda que tu reserva se elimina automaticamente despues de
+                los 15 minutos si no esta pagada
               </h2>
             </div>
 
@@ -327,15 +329,13 @@ const MisReservas = () => {
 
                       {/* Botones de Acción */}
                       <div className="mt-5 flex flex-col gap-2 border-t border-zinc-800/80 pt-4">
-                        
-                          <button
-                            type="button"
-                            className="w-full rounded-lg bg-blue-200-600/15 py-2 text-xs font-semibold text-blue-200-400 border border-amber-50-500/20 transition hover:bg-cyan-500-600 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
-                            onClick={() => void handlePagarPendiente(reserva._id)}
-                          >
-                            💳 <span>Pagar Reserva</span>
-                          </button>
-                        
+                        <button
+                          type="button"
+                          className="w-full rounded-lg bg-blue-200-600/15 py-2 text-xs font-semibold text-blue-200-400 border border-amber-50-500/20 transition hover:bg-cyan-500-600 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                          onClick={() => void handlePagarPendiente(reserva._id)}
+                        >
+                          💳 <span>Pagar Reserva</span>
+                        </button>
 
                         <button
                           type="button"

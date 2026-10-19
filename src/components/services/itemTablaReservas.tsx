@@ -1,76 +1,108 @@
-import { Link } from "react-router";
-import { LuTrash2, LuPencil } from "react-icons/lu";
-import type { Reserva } from "../../interfaces/reserva";
 import Swal from "sweetalert2";
-import { borrarReservaApi } from "../../helpers/queries";
+import type { Reserva } from "../../interfaces/reserva";
+import { cancelarReservaApi } from "../../helpers/queries";
 
-interface ItemReservaProps {
+interface ItemTablaReservaProps {
   reserva: Reserva;
   fila: number;
   setReservas: React.Dispatch<React.SetStateAction<Reserva[]>>;
+  recargarReservas?: () => void;
 }
-const ItemTablaReserva = ({ reserva, fila, setReservas }: ItemReservaProps) => {
-  const eliminarReserva = () => {
+
+const ItemTablaReserva = ({ reserva, fila, recargarReservas }: ItemTablaReservaProps) => {
+  const nombreCancha =
+    (reserva.cancha as any)?.nombreCancha ||
+    (reserva.cancha as any)?.nombre ||
+    "Cancha";
+
+  const nombreCliente =
+  (reserva as any)?.nombreCliente ||
+    reserva.nombreReserva ||
+    (reserva.usuario as any)?.nombre ||
+    (reserva.usuario as any)?.nombreUsuario ||
+    (reserva.usuario as any)?.email?.split("@")[0] ||
+    "Cliente";
+
+  const fecha = reserva.fechaJornada || reserva.fecha || reserva.fechaInicio || "-";
+
+  const badgeEstado = (estado: string) => {
+    switch (estado?.toLowerCase()) {
+      case "confirmada":
+        return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+      case "pendiente":
+        return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+      case "cancelada":
+        return "bg-rose-500/20 text-rose-400 border border-rose-500/30";
+      default:
+        return "bg-zinc-800 text-zinc-300";
+    }
+  };
+
+  const handleCancelar = () => {
     Swal.fire({
-      title: "¿Estás seguro?",
-      text: "No se puede revertir este proceso",
+      title: "¿Cancelar esta reserva?",
+      text: `Se cancelará la reserva de ${nombreCliente} para el ${fecha} a las ${reserva.horaInicio} hs`,
       icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#3f3f46",
+      confirmButtonText: "Sí, cancelar",
+      cancelButtonText: "Volver",
       background: "#18181b",
       color: "#f4f4f5",
-      showCancelButton: true,
-      confirmButtonColor: "#3b82f6",
-      cancelButtonColor: "#ef4444",
-      confirmButtonText: "Sí, borrar",
-      cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        const respuestaBorrarReserva = await borrarReservaApi(reserva._id);
-        if (respuestaBorrarReserva && respuestaBorrarReserva.status === 200) {
+        try {
+          await cancelarReservaApi(reserva._id);
           Swal.fire({
-            title: "Eliminado",
-            text: `El reserva fue eliminada correctamente`,
+            title: "Cancelada",
+            text: "La reserva fue cancelada exitosamente.",
             icon: "success",
             background: "#18181b",
             color: "#f4f4f5",
-            confirmButtonColor: "#3b82f6",
+            confirmButtonColor: "#22c55e",
           });
-          setReservas((prevReservas) =>
-            prevReservas.filter((item) => item._id !== reserva._id),
-          );
+          if (recargarReservas) recargarReservas();
+        } catch (error: any) {
+          Swal.fire({
+            title: "Error",
+            text: error.message || "No se pudo cancelar la reserva",
+            icon: "error",
+            background: "#18181b",
+            color: "#f4f4f5",
+          });
         }
       }
     });
   };
-  return (
-    <tr className="border-b border-zinc-800 hover:bg-zinc-900/50 transition-colors">
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 font-mono">
-        {fila}
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-200">
-        {reserva.nombreReserva}
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-200">
-        {reserva.fechaInicio}
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400 font-mono">
-        $ {reserva.estado}
-      </td>
 
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <div className="flex gap-3">
-          <Link
-            to={`/administrador/reservas/editar/${reserva._id}`}
-            className="text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1"
-          >
-            Editar <LuPencil />
-          </Link>
+  return (
+    <tr className="hover:bg-zinc-800/40 transition-colors">
+      <td className="px-6 py-4 font-mono text-xs text-zinc-400">{fila}</td>
+      <td className="px-6 py-4 font-medium text-white">{nombreCancha}</td>
+      <td className="px-6 py-4 text-zinc-300">{nombreCliente}</td>
+      <td className="px-6 py-4 text-zinc-300">{fecha}</td>
+      <td className="px-6 py-4 font-mono text-zinc-200">{reserva.horaInicio} hs</td>
+      <td className="px-6 py-4 text-center">
+        <span
+          className={`inline-block px-2.5 py-1 text-xs font-semibold rounded-full capitalize ${badgeEstado(
+            reserva.estado
+          )}`}
+        >
+          {reserva.estado === "confirmada" ? "Confirmada" : reserva.estado}
+        </span>
+      </td>
+      <td className="px-6 py-4 text-center">
+        {reserva.estado?.toLowerCase() !== "cancelada" ? (
           <button
-            className="text-red-500 hover:text-red-400 transition-colors flex items-center gap-1"
-            onClick={eliminarReserva}
+            onClick={handleCancelar}
+            className="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white rounded-lg text-xs font-semibold border border-rose-500/40 transition-all active:scale-95 cursor-pointer"
           >
-            Borrar <LuTrash2 />
+            Cancelar
           </button>
-        </div>
+        ) : (
+          <span className="text-zinc-600 text-xs italic">Cancelada</span>
+        )}
       </td>
     </tr>
   );

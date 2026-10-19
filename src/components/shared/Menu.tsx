@@ -72,6 +72,14 @@ const Menu = () => {
                   )}
                   {isAdmin && (
                     <NavLink
+                      to="/administrador/reservas"
+                      className={navLinkStyles}
+                    >
+                      Reservas
+                    </NavLink>
+                  )}
+                  {isAdmin && (
+                    <NavLink
                       to="/administrador/productos"
                       className={navLinkStyles}
                     >
@@ -79,10 +87,7 @@ const Menu = () => {
                     </NavLink>
                   )}
                   {!isAdmin && (
-                    <NavLink
-                      to="/mis-reservas"
-                      className={navLinkStyles}
-                    >
+                    <NavLink to="/mis-reservas" className={navLinkStyles}>
                       Tus Reservas
                     </NavLink>
                   )}
@@ -144,6 +149,15 @@ const Menu = () => {
               )}
               {isAdmin && (
                 <NavLink
+                  to="/administrador/reservas"
+                  className={navLinkStyles}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Reservas
+                </NavLink>
+              )}
+              {isAdmin && (
+                <NavLink
                   to="/administrador/productos"
                   className={navLinkStyles}
                   onClick={() => setIsMenuOpen(false)}
@@ -152,21 +166,21 @@ const Menu = () => {
                 </NavLink>
               )}
               <NavLink
-                  to="/mis-reservas"
-                  className={navLinkStyles}
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                to="/mis-reservas"
+                className={navLinkStyles}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Tus Reservas
               </NavLink>
               {!isAdmin && (
-              <Link
-                to="/carrito"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-2 bg-zinc-800/80 text-green-400 px-3 py-2 rounded-lg border border-zinc-700/80 text-sm font-semibold my-1"
-              >
-                <GiShoppingCart className="text-xl" />
-                <span>{nombreMostrar}</span>
-              </Link>
+                <Link
+                  to="/carrito"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2 bg-zinc-800/80 text-green-400 px-3 py-2 rounded-lg border border-zinc-700/80 text-sm font-semibold my-1"
+                >
+                  <GiShoppingCart className="text-xl" />
+                  <span>{nombreMostrar}</span>
+                </Link>
               )}
               <button
                 onClick={logout}

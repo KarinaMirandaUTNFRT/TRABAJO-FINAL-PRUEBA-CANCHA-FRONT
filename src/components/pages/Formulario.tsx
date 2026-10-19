@@ -41,23 +41,24 @@ const Formulario = ({ titulo }: FormularioProps) => {
       }
     }
   };
-  
+
   useEffect(() => {
-    const obtenerCategorias = async () => {
+    const cargarCategorias = async () => {
       try {
-        const respuesta = await listarCategoriasProductosApi();
-        if (Array.isArray(respuesta)) {
-          setCategorias(respuesta);
-        }
+        const respuesta = await listarCategoriasProductosApi(); // o la función que uses
+
+        // Acceso directo a la propiedad que se ve en la consola:
+        setCategorias((respuesta as any)?.categorias ?? []);
       } catch (error) {
-        console.error("Error al cargar categorías:", error);
+        console.error("Error al cargar categorías de productos:", error);
       }
     };
-    obtenerCategorias();
-    void cargarDatos();
-  }, []);
 
-
+    cargarCategorias();
+    if (id) {
+      void cargarDatos();
+    }
+  }, [id]);
 
   const onSubmit: SubmitHandler<ProductoFormData> = async (data, e) => {
     if (titulo.includes("Crear") && crearProductoApi) {
@@ -155,22 +156,23 @@ const Formulario = ({ titulo }: FormularioProps) => {
               <label className="block text-sm font-medium text-slate-500 mb-2">
                 Categoría*
               </label>
+
               <select
-                className={inputClass(!!errors.categoria)}
                 {...register("categoria", {
                   required: "Seleccione una categoría",
                 })}
+                className={inputClass(!!errors.categoria)}
               >
-                <option value="" className="bg-zinc-900">
+                <option value="" className="bg-zinc-900 text-zinc-300">
                   Seleccione una opción
                 </option>
-                {categorias.map((categoria) => (
+                {categorias.map((cat: any) => (
                   <option
-                    key={categoria._id}
-                    value={categoria._id}
-                    className="bg-zinc-900"
+                    key={cat._id}
+                    value={cat._id}
+                    className="bg-zinc-900 text-white"
                   >
-                    {categoria.descripcion}
+                    {cat.nombre}
                   </option>
                 ))}
               </select>

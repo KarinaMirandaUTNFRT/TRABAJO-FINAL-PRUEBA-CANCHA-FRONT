@@ -12,9 +12,34 @@ const urlProductos = `${import.meta.env.VITE_ALQUILER_CANCHAS}/productos`;
 const urlCategoriasProductos = `${import.meta.env.VITE_ALQUILER_CANCHAS}/categoriaProductos`;
 const urlCarrito = `${import.meta.env.VITE_ALQUILER_CANCHAS}/carrito`;
 const urlPagoProducto = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoProducto`;
-const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha`;
+const urlPagoCancha = `${import.meta.env.VITE_ALQUILER_CANCHAS}/pagoCancha/crear-preferencia`;
 const urlMisReservas = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas/mis-reservas`;
 const urlReservasTotales = `${import.meta.env.VITE_ALQUILER_CANCHAS}/reservas`;
+
+const BASE_URL =
+  import.meta.env.VITE_ALQUILER_CANCHAS ||
+  "https://alquiler-cancha-proyecto-final-backend.onrender.com/api";
+
+const obtenerToken = (): string => {
+  let token = sessionStorage.getItem("token") || localStorage.getItem("token");
+
+  if (!token) {
+    const rawUser =
+      sessionStorage.getItem("usuarioLogueado") ||
+      localStorage.getItem("usuarioLogueado");
+
+    if (rawUser) {
+      try {
+        const usuario = JSON.parse(rawUser);
+        token = usuario?.token;
+      } catch (err) {
+        console.error("Error parseando usuario:", err);
+      }
+    }
+  }
+
+  return token || "";
+};
 
 export interface ListarProductosParams {
   paginaNumero?: number;
@@ -29,8 +54,9 @@ export interface ListarReservasParams {
   pagina?: number;
   limite?: number;
   termino?: string;
+  estado?: string;
 }
- export const listarCanchasApi = async (): Promise<any> => {
+export const listarCanchasApi = async (): Promise<any> => {
   try {
     const respuesta = await httpClient.get("/canchas");
 
@@ -50,23 +76,34 @@ export const buscarCanchaApi = async (id: string): Promise<Response> => {
     throw error;
   }
 };
-
-export const crearCanchaApi = async (
-  cancha: CanchaFormData,
-): Promise<Response> => {
+export const crearCanchaApi = async (cancha: CanchaFormData): Promise<any> => {
   try {
     const token =
       sessionStorage.getItem("token") || localStorage.getItem("token");
+
     const respuesta = await fetch(urlCanchas, {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        // En Express algunos usan 'Authorization' y otros 'x-token':
         Authorization: `Bearer ${token}`,
+        "x-token": token || "",
       },
       body: JSON.stringify(cancha),
     });
-    return respuesta;
+
+    const datos = await respuesta.json().catch(() => ({}));
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje ||
+          datos.msg ||
+          `Error ${respuesta.status}: No autorizado para crear la cancha`,
+      );
+    }
+
+    return datos;
   } catch (error) {
     console.error("Error al crear la cancha:", error);
     throw error;
@@ -113,15 +150,41 @@ export const listarReservasApiAdm = async (
   params: ListarReservasParams = {},
 ): Promise<Response> => {
   try {
+    // 1. Obtener el token (ya sea suelto o dentro de usuarioLogueado)
+    const tokenDirecto =
+      sessionStorage.getItem("token") || localStorage.getItem("token");
+
+    const usuarioStorage = JSON.parse(
+      sessionStorage.getItem("usuarioLogueado") ||
+        localStorage.getItem("usuarioLogueado") ||
+        "{}",
+    );
+
+    const token = tokenDirecto || usuarioStorage.token || "";
+
+    // 2. Armar los parámetros de la URL
     const query = new URLSearchParams();
     const pagina = params.pagina ?? params.paginaNumero ?? 1;
     const limite = params.limite ?? params.cantReservas ?? 8;
     query.set("pagina", String(pagina));
     query.set("limite", String(limite));
+
     if (params.termino) {
       query.set("termino", params.termino);
     }
-    const respuesta = await fetch(`${urlReservasTotales}?${query.toString()}`);
+    // Incluimos el filtro de estado si existe y no es "todas"
+    if (params.estado && params.estado !== "todas") {
+      query.set("estado", params.estado);
+    }
+
+    const respuesta = await fetch(`${urlReservasTotales}?${query.toString()}`,{
+method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-token": token,
+      },
+    });
     return respuesta;
   } catch (error) {
     console.error("Error al listar Reservas:", error);
@@ -230,19 +293,35 @@ export const listarCategoriasProductosApi = async (): Promise<any[]> => {
 
 export const crearProductoApi = async (
   producto: ProductoFormData,
-): Promise<Response> => {
+): Promise<any> => {
   try {
+    const token =
+      sessionStorage.getItem("token") || localStorage.getItem("token");
+
     const respuesta = await fetch(urlProductos, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "x-token": token || "",
       },
       body: JSON.stringify(producto),
-      credentials: "include",
     });
-    return respuesta;
+
+    const datos = await respuesta.json().catch(() => ({}));
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje ||
+          datos.msg ||
+          `Error ${respuesta.status}: No se pudo crear el producto`,
+      );
+    }
+
+    return datos;
   } catch (error) {
-    console.error(error);
+    console.error("Error al crear producto:", error);
     throw error;
   }
 };
@@ -346,13 +425,16 @@ export const agregarAlCarritoApi = async (
     throw error;
   }
 };
-export const restarDelCarritoApi = async (productoId: string, token?: string): Promise<Response> => {
+export const restarDelCarritoApi = async (
+  productoId: string,
+  token?: string,
+): Promise<Response> => {
   const authToken =
     token ||
     JSON.parse(
       sessionStorage.getItem("usuario") ||
-      localStorage.getItem("usuario") ||
-      "{}"
+        localStorage.getItem("usuario") ||
+        "{}",
     )?.token;
 
   return await fetch(`http://localhost:3000/api/carrito/restar/${productoId}`, {
@@ -360,18 +442,21 @@ export const restarDelCarritoApi = async (productoId: string, token?: string): P
     headers: {
       "Content-Type": "application/json",
       "x-token": authToken || "",
-      "Authorization": `Bearer ${authToken || ""}`,
+      Authorization: `Bearer ${authToken || ""}`,
     },
     credentials: "include",
   });
 };
-export const eliminarProductoDelCarritoApi = async (productoId: string, token?: string): Promise<Response> => {
+export const eliminarProductoDelCarritoApi = async (
+  productoId: string,
+  token?: string,
+): Promise<Response> => {
   const authToken =
     token ||
     JSON.parse(
       sessionStorage.getItem("usuario") ||
-      localStorage.getItem("usuario") ||
-      "{}"
+        localStorage.getItem("usuario") ||
+        "{}",
     )?.token;
 
   return await fetch(`http://localhost:3000/api/carrito/${productoId}`, {
@@ -379,7 +464,7 @@ export const eliminarProductoDelCarritoApi = async (productoId: string, token?: 
     headers: {
       "Content-Type": "application/json",
       "x-token": authToken || "",
-      "Authorization": `Bearer ${authToken || ""}`,
+      Authorization: `Bearer ${authToken || ""}`,
     },
     credentials: "include",
   });
@@ -418,38 +503,28 @@ export const crearPreferenciaPagoApi = async () => {
 };
 // para el pago de canchas
 export const crearPreferenciaReservaApi = async (reservaId: string) => {
-  let token = localStorage.getItem("token");
-  if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
-    if (rawUser) {
-      try {
-        token = JSON.parse(rawUser)?.token;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
+  const token = obtenerToken();
 
-  const resp = await fetch(`${urlPagoCancha}/crear-preferencia`, 
-     {
+  const resp = await fetch(urlPagoCancha, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      "x-token": token,
+      Authorization: `Bearer ${token}`,
     },
-    credentials: "include",
-    body: JSON.stringify({ reservaId }), // Envía la clave que espera el backend
+    body: JSON.stringify({ reservaId }),
   });
 
-  return resp;
+  return await resp.json();
 };
 
 export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
-  let token = localStorage.getItem("token");
+  let token = sessionStorage.getItem("token");
 
   if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
+    const rawUser =
+      sessionStorage.getItem("usuarioLogueado") ||
+      localStorage.getItem("usuarioLogueado");
     if (rawUser) {
       try {
         const usuario = JSON.parse(rawUser);
@@ -460,12 +535,13 @@ export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
     }
   }
 
-  const resp = await fetch(urlMisReservas, { // Ajusta la ruta a tu endpoint
+  const resp = await fetch(urlMisReservas, {
+    // Ajusta la ruta a tu endpoint
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      Authorization: `Bearer ${token || ""}`,
     },
     credentials: "include",
   });
@@ -473,38 +549,25 @@ export const obtenerMisReservasApi = async (): Promise<Reserva[]> => {
   if (!resp.ok) {
     throw new Error("Error al obtener las reservas");
   }
-return await resp.json();
-  
+  return await resp.json();
 };
 export const cancelarReservaApi = async (id: string) => {
-  let token = localStorage.getItem("token");
+  const token = obtenerToken();
 
-  if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
-    if (rawUser) {
-      try {
-        const usuario = JSON.parse(rawUser);
-        token = usuario?.token;
-      } catch (err) {
-        console.error("Error parseando usuario:", err);
-      }
-    }
-  }
-
-  const urlBase =
-    import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
-
-  const resp = await fetch(`${urlBase}/reservas/${id}/cancelar`, {
-    method: "PATCH",
+  const resp = await fetch(`${BASE_URL}/reservas/${id}`, {
+    method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      "x-token": token,
+      Authorization: `Bearer ${token}`,
     },
-    credentials: "include",
   });
 
-  return resp;
+  if (!resp.ok) {
+    throw new Error("Error al cancelar la reserva");
+  }
+
+  return await resp.json();
 };
 // 1. Crear la reserva en MongoDB
 export const crearReservaApi = async (datosReserva: {
@@ -516,28 +579,15 @@ export const crearReservaApi = async (datosReserva: {
   horaInicio?: string;
   [key: string]: any;
 }) => {
-  let token = localStorage.getItem("token");
-  if (!token) {
-    const rawUser = localStorage.getItem("usuarioLogueado");
-    if (rawUser) {
-      try {
-        token = JSON.parse(rawUser)?.token;
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  }
+  const token = obtenerToken();
 
-  const urlBase = import.meta.env.VITE_ALQUILER_CANCHAS || "http://localhost:3000/api";
-
-  const resp = await fetch(`${urlBase}/reservas`, {
+  const resp = await fetch(`${BASE_URL}/reservas`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-token": token || "",
-      "Authorization": `Bearer ${token || ""}`,
+      "x-token": token,
+      Authorization: `Bearer ${token}`,
     },
-    credentials: "include",
     body: JSON.stringify(datosReserva),
   });
 
