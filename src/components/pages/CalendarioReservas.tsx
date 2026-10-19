@@ -11,6 +11,17 @@ import {
 } from "../../helpers/queries";
 import Swal from "sweetalert2";
 
+interface ItemReserva {
+  idTemporal: string; // canchaId + fecha + horaInicio
+  canchaId: string;
+  nombreCancha: string;
+  fecha: string;      // Formato YYYY-MM-DD (fechaISO)
+  fechaTexto: string; // Ej: "31 de octubre"
+  horaInicio: string;
+  horaFin: string;
+  precio: number;
+}
+
 function convertirFechaAISO(fecha: any): string {
   if (!fecha || !(fecha instanceof Date) || isNaN(fecha.getTime())) {
     const hoy = new Date();
@@ -36,6 +47,7 @@ function formatearPrecio(precio: number) {
 export default function CalendarioReservas() {
   const [canchas, setCanchas] = useState<any[]>([]);
   const [canchaId, setCanchaId] = useState<string>("");
+  const [canchasSeleccionadas, setCanchasSeleccionadas] = useState<ItemReserva[]>([]);
   const [fechaSeleccionada, setFechaSeleccionada] = useState<Date>(new Date());
   const [turnos, setTurnos] = useState<any[]>([]);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<any>(null);
@@ -46,28 +58,29 @@ export default function CalendarioReservas() {
   const fechaISO = convertirFechaAISO(fechaSeleccionada);
   const navegacion = useNavigate();
 
+  // Total acumulado sumando las reservas en lista + la activa en pantalla (si la hay)
+  const totalAcumulado =
+    canchasSeleccionadas.reduce((acc, c) => acc + c.precio, 0) +
+    (turnoSeleccionado ? turnoSeleccionado.precio : 0);
+
   // 1. Cargar las canchas al montar el componente
   useEffect(() => {
     async function cargarCanchas() {
       try {
         const respuesta = await listarCanchasApi();
-        console.log("LOG CLAVE - Lo que recibió el componente:", respuesta);
-
         let lista = [];
 
         if (Array.isArray(respuesta)) {
           lista = respuesta;
         } else if (respuesta && typeof respuesta === "object") {
-          // Buscamos exhaustivamente en todas las propiedades comunes de backends
-          lista = 
-            respuesta.canchas || 
-            respuesta.data?.canchas || 
-            respuesta.data || 
-            respuesta.lista || 
-            respuesta.items || 
+          lista =
+            respuesta.canchas ||
+            respuesta.data?.canchas ||
+            respuesta.data ||
+            respuesta.lista ||
+            respuesta.items ||
             [];
-            
-          // Si el objeto en sí es un documento único de cancha
+
           if (lista.length === 0 && (respuesta._id || respuesta.id)) {
             lista = [respuesta];
           }
@@ -103,13 +116,13 @@ export default function CalendarioReservas() {
         const datos = await obtenerDisponibilidad(
           canchaId,
           fechaISO,
-          controlador.signal,
+          controlador.signal
         );
         setTurnos(datos?.turnos || []);
       } catch (errorConsulta: any) {
         if (errorConsulta.name !== "AbortError") {
           setError(
-            errorConsulta.message || "Error al cargar la disponibilidad",
+            errorConsulta.message || "Error al cargar la disponibilidad"
           );
         }
       } finally {
@@ -129,10 +142,79 @@ export default function CalendarioReservas() {
     setTurnoSeleccionado(turno);
   }
 
-  function continuarReserva() {
+  // Agrega el turno actual a la lista acumulada
+  function handleElegirOtra() {
     if (!turnoSeleccionado) return;
-    const usuarioLogueadoSesion = sessionStorage.getItem("usuarioLogueado");
 
+    const idTemporal = `${canchaId}-${fechaISO}-${turnoSeleccionado.horaInicio}`;
+
+    if (canchasSeleccionadas.some((item) => item.idTemporal === idTemporal)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Turno ya agregado",
+        text: "Ya tienes este turno en tu lista de reservas.",
+        background: "#ffffff",
+        color: "#0f172a",
+      });
+      return;
+    }
+
+    const nombreCanchaActual =
+      canchas.find((c) => c.id === canchaId)?.nombre || "Cancha";
+
+    const nuevaReserva: ItemReserva = {
+      idTemporal,
+      canchaId,
+      nombreCancha: nombreCanchaActual,
+      fecha: fechaISO,
+      fechaTexto: fechaSeleccionada.toLocaleDateString("es-AR", {
+        day: "numeric",
+        month: "long",
+      }),
+      horaInicio: turnoSeleccionado.horaInicio,
+      horaFin: turnoSeleccionado.horaFin,
+      precio: turnoSeleccionado.precio,
+    };
+
+    setCanchasSeleccionadas((prev) => [...prev, nuevaReserva]);
+    setTurnoSeleccionado(null);
+  }
+
+  // Quitar una cancha de la lista acumulada
+  function eliminarReserva(idTemporal: string) {
+    setCanchasSeleccionadas((prev) =>
+      prev.filter((item) => item.idTemporal !== idTemporal)
+    );
+  }
+
+  function continuarReserva() {
+    let listaFinal = [...canchasSeleccionadas];
+
+    if (turnoSeleccionado) {
+      const idTemporal = `${canchaId}-${fechaISO}-${turnoSeleccionado.horaInicio}`;
+      if (!listaFinal.some((item) => item.idTemporal === idTemporal)) {
+        listaFinal.push({
+          idTemporal,
+          canchaId,
+          nombreCancha:
+            canchas.find((c) => c.id === canchaId)?.nombre || "Cancha",
+          fecha: fechaISO,
+          fechaTexto: fechaSeleccionada.toLocaleDateString("es-AR", {
+            day: "numeric",
+            month: "long",
+          }),
+          horaInicio: turnoSeleccionado.horaInicio,
+          horaFin: turnoSeleccionado.horaFin,
+          precio: turnoSeleccionado.precio,
+        });
+        setCanchasSeleccionadas(listaFinal);
+        setTurnoSeleccionado(null);
+      }
+    }
+
+    if (listaFinal.length === 0) return;
+
+    const usuarioLogueadoSesion = sessionStorage.getItem("usuarioLogueado");
     if (!usuarioLogueadoSesion) {
       Swal.fire({
         title: "¡Inicia sesión para continuar!",
@@ -150,89 +232,73 @@ export default function CalendarioReservas() {
           navegacion("/login");
         }
       });
-
       return;
     }
     setMostrarModal(true);
   }
 
-const handleComprar = async () => {
-    if (!usuarioLogueado) {
-      Swal.fire({
-        icon: "info",
-        title: "Inicia sesión",
-        text: "Debes iniciar sesión para reservar una cancha",
-        background: "#18181b",
-        color: "#f4f4f5",
-      });
-      return;
-    }
+  const handleComprar = async () => {
+    if (!usuarioLogueado) return;
 
     try {
-      // 1. Datos validados directamente desde el estado del componente
-      const hora = turnoSeleccionado.horaInicio.trim();
-      const idCanchaSeleccionada = canchaId; // El ID exacto del select
-      const fechaAEnviar = fechaISO;         // 'YYYY-MM-DD' generado por convertirFechaAISO
-
-      // PASO 1: Crear la reserva en MongoDB con los nombres que exige tu backend
       const respNuevaReserva = await crearReservaApi({
-        canchaId: idCanchaSeleccionada,
         nombreCliente:
-    usuarioLogueado?.nombre ||
-    usuarioLogueado?.email?.split("@")[0] ||
-    "Cliente RollingClub",        fecha: fechaAEnviar,
-        turnos: [hora], // Array de turnos: ['08:00']
+          usuarioLogueado?.nombre ||
+          usuarioLogueado?.email?.split("@")[0] ||
+          "Cliente RollingClub",
+        reservas: canchasSeleccionadas.map((item) => ({
+          canchaId: item.canchaId,
+          nombreCancha: item.nombreCancha,
+          fecha: item.fecha,
+          turnos: [item.horaInicio],
+          precio: item.precio,
+        })),
       } as any);
 
       if (!respNuevaReserva.ok) {
         const errData = await respNuevaReserva.json().catch(() => null);
-        throw new Error(errData?.mensaje || "No se pudo registrar la reserva");
+        throw new Error(errData?.mensaje || "No se pudieron registrar las reservas");
       }
 
       const respuestaJson = await respNuevaReserva.json();
-
-      // Tu backend devuelve: { mensaje: "...", reservas: [ { _id, ... } ] }
-      const idReserva =
+      const idOrdenOPago =
+        respuestaJson.ordenId ||
+        respuestaJson.grupoId ||
         respuestaJson.reservas?.[0]?._id ||
-        respuestaJson._id ||
-        respuestaJson.reserva?._id;
+        respuestaJson._id;
 
-      if (!idReserva) {
-        throw new Error("No se pudo obtener el identificador de la reserva creada");
+      if (!idOrdenOPago) {
+        throw new Error("No se pudo obtener el identificador para procesar el pago");
       }
 
-      // PASO 2: Generar la orden y preferencia en Mercado Pago con el ID de la reserva
-      const respPreferencia = await crearPreferenciaReservaApi(idReserva);
+      const respPreferencia = await crearPreferenciaReservaApi(idOrdenOPago);
       const dataPreferencia =
         typeof (respPreferencia as any)?.json === "function"
           ? await (respPreferencia as any).json()
           : respPreferencia;
 
-      if ((respPreferencia as any)?.ok === false || dataPreferencia?.error) {
-        throw new Error(dataPreferencia?.mensaje || dataPreferencia?.error || "Error al generar la orden de pago");
-      }
-      // PASO 3: Redirigir a Mercado Pago
-      const linkPago = 
-      dataPreferencia.sandbox_init_point||
-      dataPreferencia.init_point || 
-      dataPreferencia?.url;
+      const linkPago =
+        dataPreferencia.sandbox_init_point ||
+        dataPreferencia.init_point ||
+        dataPreferencia?.url;
+
       if (linkPago) {
         window.location.href = linkPago;
       } else {
         throw new Error("No se recibió la URL de pago de Mercado Pago");
       }
     } catch (error: any) {
-      console.error("Error en el proceso de reserva y pago:", error);
       Swal.fire({
         icon: "error",
         title: "No se pudo iniciar el pago",
-        text: error.message || "Ocurrió un error inesperado al procesar la reserva",
+        text: error.message || "Ocurrió un error inesperado al procesar las reservas",
         confirmButtonColor: "#ef4444",
         background: "#18181b",
         color: "#f4f4f5",
       });
     }
   };
+
   const getEstilosTurno = (turno: any, isSelected: boolean) => {
     const base =
       "flex flex-col items-center justify-center p-2.5 rounded-lg border text-center transition-all duration-150 select-none";
@@ -266,7 +332,9 @@ const handleComprar = async () => {
           Seleccioná la fecha y asegurá tu partido.
         </p>
       </header>
+
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Selector de Canchas y Calendario */}
         <div className="lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 h-fit">
           <label
             htmlFor="cancha"
@@ -298,6 +366,8 @@ const handleComprar = async () => {
             />
           </div>
         </div>
+
+        {/* Grilla de Turnos */}
         <div className="lg:col-span-8 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-emerald-100">
           <h2 className="text-2xl font-bold text-slate-800 mb-6 capitalize border-b-2 border-emerald-100 pb-4">
             Turnos del{" "}
@@ -309,6 +379,7 @@ const handleComprar = async () => {
               })}
             </span>
           </h2>
+
           <div className="flex flex-wrap gap-6 mb-8 text-sm font-medium text-slate-600">
             <span className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
@@ -364,40 +435,97 @@ const handleComprar = async () => {
               })}
             </div>
           )}
+
+          {/* Barra de Turno Seleccionado Actual */}
           {turnoSeleccionado && (
-            <div className="mt-10 bg-slate-900 text-white p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl border-t-4 border-emerald-500">
-              <div className="flex gap-8 w-full md:w-auto">
-                <div>
-                  <span className="block text-slate-400 text-xs uppercase tracking-wider font-bold mb-1">
-                    Tu Horario
-                  </span>
-                  <strong className="text-xl">
-                    {turnoSeleccionado.horaInicio} a {turnoSeleccionado.horaFin}
-                  </strong>
-                </div>
-                <div>
-                  <span className="block text-slate-400 text-xs uppercase tracking-wider font-bold mb-1">
-                    Total a Pagar
-                  </span>
-                  <strong className="text-xl text-emerald-400">
-                    {formatearPrecio(turnoSeleccionado.precio)}
-                  </strong>
-                </div>
+            <div className="mt-6 bg-slate-900 text-white p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-emerald-500 shadow-xl">
+              <div>
+                <span className="block text-slate-400 text-xs font-bold uppercase">
+                  Turno seleccionado
+                </span>
+                <strong className="text-lg">
+                  {turnoSeleccionado.horaInicio} a {turnoSeleccionado.horaFin} —{" "}
+                  {formatearPrecio(turnoSeleccionado.precio)}
+                </strong>
               </div>
-              <button
-                type="button"
-                onClick={continuarReserva}
-                className="w-full md:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-extrabold rounded-xl transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-              >
-                Confirmar Reserva
-              </button>
+              <div className="flex gap-3 w-full md:w-auto">
+                <button
+                  type="button"
+                  onClick={handleElegirOtra}
+                  className="w-full md:w-auto px-5 py-3 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold rounded-xl border border-emerald-500/40 transition-colors"
+                >
+                  + Elegir otra opcion
+                </button>
+                <button
+                  type="button"
+                  onClick={continuarReserva}
+                  className="w-full md:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-extrabold rounded-xl transition-colors shadow-lg"
+                >
+                  Confirmar Reserva
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
-      {mostrarModal && turnoSeleccionado && (
+
+      {/* Lista de Canchas/Turnos Acumulados que se va adjuntando debajo */}
+      {canchasSeleccionadas.length > 0 && (
+        <div className="max-w-6xl mx-auto mt-8 bg-white p-6 md:p-8 rounded-2xl border border-emerald-200 shadow-sm">
+          <h3 className="font-bold text-slate-800 text-xl mb-4 flex items-center justify-between border-b pb-4">
+            <span>Tus reservas acumuladas ({canchasSeleccionadas.length})</span>
+            <span className="text-emerald-600 font-extrabold text-2xl">
+              Total: {formatearPrecio(totalAcumulado)}
+            </span>
+          </h3>
+
+          <div className="divide-y divide-slate-100">
+            {canchasSeleccionadas.map((item) => (
+              <div
+                key={item.idTemporal}
+                className="py-4 flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-bold text-slate-900 text-lg">
+                    {item.nombreCancha}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    📅 {item.fechaTexto} | ⏰ {item.horaInicio} a {item.horaFin} hs
+                  </p>
+                </div>
+                <div className="flex items-center gap-6">
+                  <span className="font-bold text-slate-800 text-lg">
+                    {formatearPrecio(item.precio)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => eliminarReserva(item.idTemporal)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-semibold border border-red-200 transition-colors"
+                    title="Eliminar turno"
+                  >
+                    ✕ Quitar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {!turnoSeleccionado && (
+            <button
+              type="button"
+              onClick={continuarReserva}
+              className="mt-6 w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-extrabold text-lg rounded-xl shadow-lg transition-colors"
+            >
+              Confirmar y Pagar Todo ({formatearPrecio(totalAcumulado)})
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Modal Desplegable con el Resumen Consolidado */}
+      {mostrarModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full relative shadow-2xl border border-slate-100 space-y-6">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full relative shadow-2xl border border-slate-100 space-y-6 max-h-[90vh] overflow-y-auto">
             <button
               type="button"
               onClick={() => setMostrarModal(false)}
@@ -411,55 +539,48 @@ const handleComprar = async () => {
                 ⚽
               </div>
               <h3 className="text-2xl font-extrabold text-slate-900">
-                Detalle de Reserva
+                Resumen de Reservas
               </h3>
               <p className="text-slate-500 text-sm mt-1">
-                Revisá los datos antes de realizar el pago
+                Revisá el listado antes de realizar el pago conjunto
               </p>
             </div>
-            <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-sm">
-              <div className="flex justify-between items-center text-slate-600">
-                <span>Cancha:</span>
-                <strong className="text-slate-900 font-bold">
-                  {canchas.find((e: any) => e.id === canchaId)?.nombre ||
-                    "Cancha seleccionada"}
-                </strong>
-              </div>
-              <div className="flex justify-between items-center text-slate-600">
-                <span>Fecha:</span>
-                <strong className="text-slate-900 font-bold capitalize">
-                  {fechaSeleccionada.toLocaleDateString("es-AR", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </strong>
-              </div>
-              <div className="flex justify-between items-center text-slate-600">
-                <span>Horario:</span>
-                <strong className="text-slate-900 font-bold">
-                  {turnoSeleccionado.horaInicio} - {turnoSeleccionado.horaFin}{" "}
-                  hs
-                </strong>
-              </div>
-              <hr className="border-slate-200 my-2" />
-              <div className="flex justify-between items-center text-base">
-                <span className="font-bold text-slate-800">Monto Total:</span>
+
+            <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 text-sm divide-y divide-slate-200/60">
+              {canchasSeleccionadas.map((r, i) => (
+                <div key={r.idTemporal || i} className="pt-2 first:pt-0">
+                  <div className="flex justify-between items-center text-slate-800 font-bold">
+                    <span>{r.nombreCancha}</span>
+                    <span className="text-emerald-700">
+                      {formatearPrecio(r.precio)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 flex justify-between">
+                    <span>{r.fechaTexto}</span>
+                    <span>
+                      {r.horaInicio} - {r.horaFin} hs
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-between items-center text-base pt-3 font-bold">
+                <span className="text-slate-900">Monto Total a Pagar:</span>
                 <strong className="text-xl font-extrabold text-emerald-600">
-                  {formatearPrecio(turnoSeleccionado.precio)}
+                  {formatearPrecio(totalAcumulado)}
                 </strong>
               </div>
             </div>
+
             <button
               type="button"
               onClick={handleComprar}
               className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl transition-all shadow-lg shadow-emerald-500/30 text-center text-base flex items-center justify-center gap-2"
             >
-              💳 Pagar Reserva
+              💳 Pagar Reservas ({formatearPrecio(totalAcumulado)})
             </button>
           </div>
         </div>
       )}
     </section>
   );
-};
+}
