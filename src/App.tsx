@@ -94,49 +94,60 @@ function App() {
         loginBackend,
       }}
     >
-     <ErrorBoundary>
-      <BrowserRouter>
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-                   <Menu />
-                    <main className="w-full grow">
-                       <Suspense fallback={<FallbackCarga />}>
-              <Routes>
-                <Route path="/" element={<Inicio />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/reservas" element={<AdmReservasClientes />} />
-                <Route path="/registrate" element={<RegistroUsuario />} />
-                
-                <Route path="/administrador" element={<ProtectorRutas />}>
-                  <Route index element={<Administrador />} />
-                  <Route path="/administrador/productos" element={<AdmProductos />} />
-                  <Route path="/administrador/productos/crear" element={<Formulario titulo={"Crear Producto"} />} />
-                  <Route path="/administrador/productos/editar/:id" element={<Formulario titulo={"Editar Producto"} />} />
-                  <Route path="/administrador/reservas" element={<AdmReservas />} />
-                  <Route path="/administrador/canchas" element={<AdmCanchas />} />
-                  <Route path="/administrador/canchas/crear" element={<FormCancha titulo={"Crear cancha"} />} />
-                  <Route path="/administrador/canchas/editar/:id" element={<FormCancha titulo={"Editar cancha"} />} />
-                </Route>
-                
-                <Route path="/productos" element={<CatalogoProductos />} />
-                <Route path="/productos/detalle/:id" element={<DetalleProducto />} />
-                <Route path="/quienessomos" element={<QuienesSomos />} />
-                <Route path="/contacto" element={<Contacto />} />
-                <Route path="/carrito" element={<Carrito />} />
-                <Route path="/mis-reservas" element={<MisReservas />} />
-                <Route path="/checkout/resultado" element={<CheckoutResultado />} />
+   <BrowserRouter>
+        <ErrorBoundary>
+          <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
+            <Menu />
+            <main className="w-full grow">
+              <Suspense fallback={<FallbackCarga />}>
+                <Routes>
+                  <Route path="/" element={<Inicio />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/reservas" element={<AdmReservasClientes />} />
+                  <Route path="/registrate" element={<RegistroUsuario />} />
 
-                <Route path="*" element={<Error404 />} />
-              </Routes>
-            </Suspense>
-          </main>
-          
-          
-          <Footer />
-        </div>
+                  <Route path="/administrador" element={<ProtectorRutas />}>
+                    <Route index element={<Administrador />} />
+                    <Route path="/administrador/productos" element={<AdmProductos />} />
+                    <Route
+                      path="/administrador/productos/crear"
+                      element={<Formulario titulo={"Crear Producto"} />}
+                    />
+                    <Route
+                      path="/administrador/productos/editar/:id"
+                      element={<Formulario titulo={"Editar Producto"} />}
+                    />
+                    <Route path="/administrador/reservas" element={<AdmReservas />} />
+                    <Route path="/administrador/canchas" element={<AdmCanchas />} />
+                    <Route
+                      path="/administrador/canchas/crear"
+                      element={<FormCancha titulo={"Crear cancha"} />}
+                    />
+                    <Route
+                      path="/administrador/canchas/editar/:id"
+                      element={<FormCancha titulo={"Editar cancha"} />}
+                    />
+                  </Route>
+
+                  <Route path="/productos" element={<CatalogoProductos />} />
+                  <Route path="/productos/detalle/:id" element={<DetalleProducto />} />
+                  <Route path="/quienessomos" element={<QuienesSomos />} />
+                  <Route path="/contacto" element={<Contacto />} />
+                  <Route path="/carrito" element={<Carrito />} />
+                  <Route path="/mis-reservas" element={<MisReservas />} />
+                  <Route path="/checkout/resultado" element={<CheckoutResultado />} />
+
+                  <Route path="*" element={<Error404 />} />
+                </Routes>
+              </Suspense>
+            </main>
+
+            <Footer />
+          </div>
+        </ErrorBoundary>
       </BrowserRouter>
-      </ErrorBoundary>
     </AppContext.Provider>
   );
 }
-
+      
 export default App;
