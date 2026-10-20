@@ -1,7 +1,8 @@
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router";
 
 const CheckoutResultado = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // Mercado Pago envía 'collection_status' o 'status'
   const status = searchParams.get("collection_status") || searchParams.get("status");
@@ -27,18 +28,18 @@ const CheckoutResultado = () => {
             </p>
           )}
           <div className="flex flex-col gap-3">
-            <Link
-              to="/mis-reservas"
-              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors"
+            <button
+              onClick={() => navigate("/mis-reservas")}
+              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors cursor-pointer"
             >
               Ver mis reservas
-            </Link>
-            <Link
-              to="/"
-              className="w-full py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium rounded-lg transition-colors"
+            </button>
+            <button
+              onClick={() => navigate("/")}
+              className="w-full py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium rounded-lg transition-colors cursor-pointer"
             >
               Volver al inicio
-            </Link>
+            </button>
           </div>
         </div>
       )}
@@ -52,12 +53,12 @@ const CheckoutResultado = () => {
           <p className="text-zinc-400 mb-6">
             Tu pago está siendo procesado. Te notificaremos cuando se acredite.
           </p>
-          <Link
-            to="/mis-reservas"
-            className="w-full inline-block py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors"
+          <button
+            onClick={() => navigate("/")}
+            className="w-full inline-block py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors cursor-pointer"
           >
             Ir a mis reservas
-          </Link>
+          </button>
         </div>
       )}
 
@@ -70,12 +71,12 @@ const CheckoutResultado = () => {
           <p className="text-zinc-400 mb-6">
             La operación fue cancelada o no pudo procesarse.
           </p>
-          <Link
-            to="/"
-            className="w-full inline-block py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors"
+          <button
+            onClick={() => navigate("/")}
+            className="w-full inline-block py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-lg transition-colors cursor-pointer"
           >
             Volver al inicio
-          </Link>
+          </button>
         </div>
       )}
     </div>
