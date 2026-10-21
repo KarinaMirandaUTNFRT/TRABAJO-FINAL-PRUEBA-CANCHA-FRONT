@@ -454,7 +454,7 @@ export default function CalendarioReservas() {
                   onClick={handleElegirOtra}
                   className="w-full md:w-auto px-5 py-3 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold rounded-xl border border-emerald-500/40 transition-colors"
                 >
-                  + Elegir otra opcion
+                  Agregar más horarios
                 </button>
                 <button
                   type="button"
