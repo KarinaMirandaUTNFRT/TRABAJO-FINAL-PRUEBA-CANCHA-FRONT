@@ -340,7 +340,7 @@ export default function CalendarioReservas() {
             htmlFor="cancha"
             className="block mb-2 font-bold text-slate-700"
           >
-            Selecciona la cancha
+            Si no existe el horario disponible puedes seleccionar otra cancha
           </label>
           <select
             id="cancha"
